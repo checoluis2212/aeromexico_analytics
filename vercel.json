@@ -1,0 +1,17 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "experimentalServices": {
+    "frontend": {
+      "routePrefix": "/",
+      "framework": "nextjs"
+    },
+    "ai-analyzer": {
+      "root": "services/ai-analyzer",
+      "entrypoint": "main:app",
+      "routePrefix": "/_/ai-analyzer"
+    }
+  }
+}

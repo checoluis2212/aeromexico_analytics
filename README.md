@@ -23,7 +23,7 @@ Portal profesional de Analytics Consulting construido con Next.js 15, Supabase y
 | `/request-center` | Formulario de solicitudes → Supabase |
 | `/knowledge-base` | Wiki de artículos y guías |
 | `/event-catalog` | Documentación de eventos GA4 |
-| `/hub` | Dashboard interno de requerimientos |
+| `/command-center` | **Analytics Command Center** — 12 módulos enterprise (requiere auth) |
 | `/ai-insights` | AI Insights Center (CSV/XLSX upload) |
 | `/analytics-os` | Analytics Operating System (premium) |
 | `/contact` | Formulario de contacto |

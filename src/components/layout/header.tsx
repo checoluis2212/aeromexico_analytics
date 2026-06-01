@@ -43,6 +43,9 @@ export function Header() {
               <Link href={item.href}>{item.label}</Link>
             </Button>
           ))}
+          <Button size="sm" variant="outline" asChild className="hidden xl:flex border-primary/30 text-primary">
+            <Link href="/command-center/executive">Command Center</Link>
+          </Button>
           <Button size="sm" asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
             <Link href="/request-center">Solicitar trabajo</Link>
           </Button>

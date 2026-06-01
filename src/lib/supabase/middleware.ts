@@ -25,7 +25,7 @@ export async function updateSession(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  const protectedPaths = ['/hub'];
+  const protectedPaths = ['/hub', '/command-center'];
   const isProtected = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   );
@@ -37,14 +37,17 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && request.nextUrl.pathname.startsWith('/hub')) {
+  if (user && (request.nextUrl.pathname.startsWith('/hub') || request.nextUrl.pathname.startsWith('/command-center'))) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, acc_role')
       .eq('id', user.id)
       .single();
 
-    if (!profile || !['admin', 'consultant'].includes(profile.role)) {
+    const legacyOk = profile && ['admin', 'consultant'].includes(profile.role);
+    const accOk = !!profile?.acc_role;
+
+    if (!legacyOk && !accOk) {
       const url = request.nextUrl.clone();
       url.pathname = '/login';
       url.searchParams.set('error', 'unauthorized');
@@ -54,7 +57,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && request.nextUrl.pathname === '/login') {
     const url = request.nextUrl.clone();
-    url.pathname = '/hub';
+    url.pathname = '/command-center/executive';
     return NextResponse.redirect(url);
   }
 

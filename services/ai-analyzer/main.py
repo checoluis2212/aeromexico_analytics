@@ -200,6 +200,81 @@ async def analyze(file: UploadFile = File(...)):
     }
 
 
+from pydantic import BaseModel
+from typing import Optional, List
+
+class ChatRequest(BaseModel):
+    message: str
+    module: str = "copilot"
+    context: str = ""
+    history: Optional[List[dict]] = None
+
+class GenerateRequestBody(BaseModel):
+    title: Optional[str] = None
+    type: Optional[str] = None
+    business_goal: Optional[str] = None
+    problem_statement: Optional[str] = None
+    decision_to_be_made: Optional[str] = None
+
+
+@app.post("/chat")
+async def chat(req: ChatRequest):
+    system = f"""Eres el Analytics Copilot de una aerolínea global.
+Módulo: {req.module}
+Contexto de reportes:\n{req.context}
+Responde en español, de forma clara y accionable. Si no existe un reporte, sugiere crear solicitud."""
+
+    if os.getenv("OPENAI_API_KEY"):
+        try:
+            messages = [{"role": "system", "content": system}]
+            if req.history:
+                messages.extend(req.history[-6:])
+            messages.append({"role": "user", "content": req.message})
+            response = client.chat.completions.create(
+                model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+                messages=messages,
+                temperature=0.4,
+            )
+            return {"reply": response.choices[0].message.content}
+        except Exception:
+            pass
+
+    return {"reply": f"Recibí tu consulta sobre: {req.message}. Consulta el Report Marketplace o Request Center."}
+
+
+@app.post("/generate-request")
+async def generate_request(body: GenerateRequestBody):
+    prompt = f"""Genera artefactos de analytics para esta solicitud:
+Título: {body.title}
+Tipo: {body.type}
+Business Goal: {body.business_goal}
+Problem: {body.problem_statement}
+Decision: {body.decision_to_be_made}
+
+Responde JSON con: user_story, acceptance_criteria (array), analytics_requirements (array), measurement_plan (string), qa_checklist (array). En español."""
+
+    if os.getenv("OPENAI_API_KEY"):
+        try:
+            response = client.chat.completions.create(
+                model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
+                temperature=0.3,
+            )
+            return json.loads(response.choices[0].message.content)
+        except Exception:
+            pass
+
+    title = body.title or "Solicitud Analytics"
+    return {
+        "user_story": f"Como stakeholder, necesito {title} para {body.business_goal or 'decisiones de negocio'}.",
+        "acceptance_criteria": ["Datos validados en QA", "Documentación actualizada", "Owner asignado"],
+        "analytics_requirements": ["Definir eventos en catalog", "Implementar en GTM", "Validar en DebugView"],
+        "measurement_plan": f"Plan de medición para {title}",
+        "qa_checklist": ["GTM Preview OK", "DebugView OK", "Sign-off stakeholder"],
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))

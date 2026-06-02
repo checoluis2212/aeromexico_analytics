@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { siteConfig, navItems, hubNavItems } from '@/lib/constants';
+import { siteConfig, navPrimary, navResources, hubNavItems, analyticsStack } from '@/lib/constants';
 import { Radar } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
@@ -16,12 +16,15 @@ export function Footer() {
             <p className="text-sm text-muted-foreground leading-relaxed">
               {siteConfig.description}
             </p>
+            <p className="text-xs text-muted-foreground mt-3">
+              {siteConfig.role} · {siteConfig.org}
+            </p>
           </div>
 
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Portal</h4>
             <ul className="space-y-2.5">
-              {navItems.map((item) => (
+              {navPrimary.map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                     {item.label}
@@ -32,7 +35,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Servicios</h4>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Acceso rápido</h4>
             <ul className="space-y-2.5">
               {hubNavItems.map((item) => (
                 <li key={item.href}>
@@ -45,12 +48,12 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Stack</h4>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Stack Aeroméxico</h4>
             <ul className="space-y-2.5 text-sm text-muted-foreground">
-              <li>Google Analytics 4</li>
-              <li>Google Tag Manager</li>
-              <li>BigQuery</li>
-              <li>Looker Studio</li>
+              {analyticsStack.map((t) => (
+                <li key={t.short}>{t.name}</li>
+              ))}
+              <li className="text-primary/80">Data layers corporativos</li>
             </ul>
           </div>
         </div>

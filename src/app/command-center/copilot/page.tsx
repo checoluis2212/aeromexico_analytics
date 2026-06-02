@@ -4,26 +4,25 @@ import { CommandCenterTopBar } from '@/components/command-center/top-bar';
 import { ChatPanel } from '@/components/command-center/chat-panel';
 
 const SUGGESTIONS = [
-  'Genera SQL BigQuery para revenue por canal últimos 30 días',
-  'Crea un evento GA4 para add_to_cart con parámetros',
-  'Genera un Measurement Plan para funnel de registro',
-  'Explica qué mide la tasa de conversión y cómo se calcula',
-  'Genera QA checklist para deploy de GTM',
+  '¿Dónde veo las compras por canal?',
+  '¿Existe un reporte de revenue por campaña?',
+  '¿Cómo veo el abandono del checkout?',
+  'Necesito un dashboard de LTV por cohorte',
+  '¿Qué mide la tasa de conversión?',
 ];
 
 export default function CopilotPage() {
   return (
     <>
       <CommandCenterTopBar
-        title="AI Analytics Copilot"
-        subtitle="SQL · Eventos GA4 · Measurement Plans · User Stories · QA"
-        badge="Copilot"
+        title="Pregúntale"
+        subtitle="Como hablar con alguien del equipo — pero disponible 24/7"
       />
-      <div className="p-6 max-w-4xl mx-auto">
+      <div className="p-5 max-w-3xl mx-auto">
         <ChatPanel
           module="copilot"
           apiEndpoint="/api/command-center/chat"
-          placeholder="Pide SQL, eventos, planes de medición, user stories..."
+          placeholder="Ej: ¿Dónde veo revenue por campaña?"
           suggestions={SUGGESTIONS}
         />
       </div>

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import type { DeliveryStatus } from '@/types/command-center';
 
-export const metadata = { title: 'Delivery Board' };
+export const metadata = { title: 'Avance' };
 
 const FALLBACK_ITEMS: BoardItem[] = [
   { id: '1', title: 'Dashboard ROAS por campaña', type: 'dashboard', priority: 'p1_high', storyPoints: 8, status: 'development' },
@@ -45,25 +45,24 @@ export default async function DeliveryBoardPage() {
   return (
     <>
       <CommandCenterTopBar
-        title="Analytics Delivery Board"
-        subtitle="Flujo tipo Linear · Drag & Drop · Sprints"
-        badge={sprint?.name ?? 'Sprint 12'}
+        title="¿En qué estamos?"
+        subtitle="Arrastra las tarjetas para ver el estado — sin complicaciones"
       />
 
-      <div className="p-6">
-        <div className="flex flex-wrap gap-4 mb-6">
-          <Card className="bg-card/50 border-border/60">
-            <CardContent className="py-3 px-4 flex items-center gap-6">
+      <div className="p-5">
+        <div className="flex flex-wrap gap-3 mb-5">
+          <Card className="bg-card/30 border-border/40">
+            <CardContent className="py-2.5 px-4 flex items-center gap-5">
               <div>
-                <p className="text-xs text-muted-foreground">Capacity</p>
-                <p className="text-lg font-bold">{usedPoints}/{sprint?.capacity_points ?? 42} pts</p>
+                <p className="text-[11px] text-muted-foreground">Capacidad del sprint</p>
+                <p className="text-base font-semibold">{usedPoints}/{sprint?.capacity_points ?? 42}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Items activos</p>
-                <p className="text-lg font-bold">{boardItems.filter((i) => i.status !== 'done').length}</p>
+                <p className="text-[11px] text-muted-foreground">En progreso</p>
+                <p className="text-base font-semibold">{boardItems.filter((i) => i.status !== 'done').length}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Blocked</p>
+                <p className="text-[11px] text-muted-foreground">Bloqueados</p>
                 <Badge variant="outline" className="border-destructive/40 text-destructive">
                   {boardItems.filter((i) => i.status === 'blocked').length}
                 </Badge>

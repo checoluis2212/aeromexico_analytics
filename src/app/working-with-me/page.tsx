@@ -1,166 +1,185 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { PageHeader } from '@/components/layout/page-header';
 import { Section } from '@/components/layout/section';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { slas } from '@/lib/constants';
-import { ArrowRight, Clock, FileText, HelpCircle, AlertTriangle } from 'lucide-react';
+import { slas, siteConfig } from '@/lib/constants';
+import { ArrowRight, MessageSquare, Calendar, Rocket, Clock } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Cómo trabajo',
-  description: 'Cómo solicitar trabajo, SLAs, prioridades y preguntas frecuentes.',
+  description: 'Pide lo que quieras a Sergio Burgos — Growth & Analytics Metrics en Aeroméxico.',
 };
 
-const requiredInfo = [
-  { title: 'Contexto de negocio', description: '¿Qué decisión necesitas tomar con estos datos?' },
-  { title: 'URLs / propiedades', description: 'Sitios, apps o propiedades GA4 afectadas.' },
-  { title: 'Cronograma', description: 'Fecha límite y dependencias con otros equipos.' },
-  { title: 'Stakeholders', description: 'Quién aprueba, quién consume los datos.' },
-  { title: 'Accesos', description: 'GTM, GA4, BigQuery — o indicar si necesitas guía de acceso.' },
-  { title: 'Referencias', description: 'Documentos previos, tickets, screenshots del problema.' },
+const steps = [
+  {
+    icon: MessageSquare,
+    title: 'Cuéntame qué quieres',
+    desc: 'Formulario corto: métrica, dashboard, evento GTM, embudo — lo que sea.',
+  },
+  {
+    icon: Calendar,
+    title: 'Te respondo con un plan',
+    desc: 'Fecha, pasos y si hace falta una sesión para revisar el data layer juntos.',
+  },
+  {
+    icon: Rocket,
+    title: 'Lo hacemos en pareja',
+    desc: 'Tú implementas, yo reviso. Así aprendes GA4, GTM y BigQuery con casos reales de Aeroméxico.',
+  },
+];
+
+const helpfulInfo = [
+  '¿Qué decisión de negocio quieres tomar?',
+  '¿Qué propiedad GA4, app o flujo de Aeroméxico?',
+  '¿Qué data layer o página está involucrado?',
+  '¿Para cuándo lo necesitas?',
 ];
 
 const faqs = [
   {
-    q: '¿Cuánto tarda una implementación GA4 típica?',
-    a: 'Depende del scope. Un measurement plan + implementación básica: 2-3 semanas. Programas enterprise completos: 6-12 semanas.',
+    q: '¿Qué herramientas manejamos?',
+    a: 'GA4, Google Tag Manager, BigQuery y Looker Studio — siempre sobre los data layers definidos para Aeroméxico.',
   },
   {
-    q: '¿Trabajas con equipos internos o solo entregables?',
-    a: 'Ambos. Puedo liderar la implementación completa o trabajar embedded con tu equipo de producto/data.',
+    q: '¿Cuánto tarda en estar listo?',
+    a: 'Un tag puede ser el mismo día. Un dashboard o mart en BigQuery, unos días. Te doy fecha antes de empezar.',
   },
   {
-    q: '¿Qué pasa después del go-live?',
-    a: 'Incluyo documentación, handoff y soporte post-launch con SLAs definidos según prioridad.',
+    q: '¿Tengo que saber programar?',
+    a: 'No hace falta ser dev. Con GTM, DebugView y algo de SQL en BigQuery vamos bien — te enseño sobre la marcha.',
   },
   {
-    q: '¿Puedo solicitar solo una auditoría?',
-    a: 'Sí. Las auditorías de analytics son uno de los servicios más solicitados. Incluyen reporte ejecutivo + plan de acción.',
+    q: '¿Qué pasa cuando termina?',
+    a: 'Queda documentado en el catálogo de eventos o playbooks. Si algo se rompe después, lo vemos.',
   },
 ];
 
-const priorityColors: Record<string, string> = {
-  'P0 — Crítico': 'border-destructive/50 text-destructive',
-  'P1 — Alto': 'border-signal/50 text-signal',
-  'P2 — Medio': 'border-primary/50 text-primary',
-  'P3 — Bajo': 'border-muted-foreground/50 text-muted-foreground',
+const priorityStyle: Record<string, string> = {
+  Urgente: 'border-destructive/40 text-destructive bg-destructive/5',
+  Importante: 'border-signal/40 text-signal bg-signal/5',
+  Normal: 'border-primary/40 text-primary bg-primary/5',
+  'Sin prisa': 'border-border text-muted-foreground bg-secondary/30',
 };
 
 export default function WorkingWithMePage() {
   return (
     <>
-      <PageHeader
-        badge="Cómo trabajo"
-        title="Cómo trabajar juntos"
-        description="Proceso claro, expectativas definidas y SLAs transparentes."
+      {/* Hero */}
+      <section className="relative border-b border-border/40 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.04] to-transparent" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+        <div className="relative mx-auto max-w-3xl px-4 sm:px-6 py-16 sm:py-20 text-center">
+          <p className="text-xs text-primary font-medium mb-4">{siteConfig.org} · {siteConfig.role}</p>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
+            Simple. Claro.{' '}
+            <span className="gradient-text">Sin complicaciones.</span>
+          </h1>
+          <p className="mt-4 text-base text-muted-foreground leading-relaxed max-w-xl mx-auto">
+            Pídeme lo que necesites en analytics y growth en {siteConfig.org} —
+            sin tickets eternos ni jerga innecesaria.
+          </p>
+          <Button size="lg" asChild className="mt-8 glow-aero">
+            <Link href="/request-center">
+              Pedir a Sergio
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </section>
+
+      {/* Steps */}
+      <Section title="En 3 pasos" description="Así de fácil es empezar.">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+          {steps.map((s, i) => (
+            <div
+              key={s.title}
+              className="relative rounded-xl border border-border/40 bg-card/20 p-5 hover:border-primary/20 transition-colors"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
+                  <s.icon className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-xs text-muted-foreground font-mono">0{i + 1}</span>
+              </div>
+              <h3 className="text-sm font-semibold">{s.title}</h3>
+              <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* What helps */}
+      <Section
+        title="Lo que me ayuda saber"
+        description="No hace falta tenerlo todo — pero cuanto más contexto, más rápido avanzamos."
+        className="border-y border-border/30 bg-card/10"
       >
-        <Button asChild>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
+          {helpfulInfo.map((item) => (
+            <li
+              key={item}
+              className="flex items-start gap-2.5 text-sm text-muted-foreground px-4 py-3 rounded-lg border border-border/30 bg-background/40"
+            >
+              <span className="text-primary mt-0.5">→</span>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </Section>
+
+      {/* SLAs as cards */}
+      <Section title="Tiempos de respuesta" description="Para que sepas qué esperar — sin sorpresas.">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-3xl mx-auto">
+          {slas.map((sla) => (
+            <div
+              key={sla.priority}
+              className={`rounded-xl border p-4 ${priorityStyle[sla.priority] ?? ''}`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold">{sla.priority}</span>
+                <span className="text-xs flex items-center gap-1 opacity-80">
+                  <Clock className="h-3 w-3" />
+                  {sla.response}
+                </span>
+              </div>
+              <p className="text-xs opacity-80 leading-relaxed">{sla.description}</p>
+              <p className="text-[11px] mt-2 opacity-60">Resuelto: {sla.resolution}</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          Horario habitual: Lun–Vie, 9:00–18:00 CET · Urgencias fuera de horario si algo se rompe en producción
+        </p>
+      </Section>
+
+      {/* FAQs */}
+      <Section title="Preguntas frecuentes" className="border-t border-border/30 bg-card/10">
+        <div className="space-y-3 max-w-2xl mx-auto">
+          {faqs.map((faq) => (
+            <details
+              key={faq.q}
+              className="group rounded-xl border border-border/40 bg-card/20 overflow-hidden"
+            >
+              <summary className="px-5 py-4 text-sm font-medium cursor-pointer list-none flex items-center justify-between hover:bg-secondary/20 transition-colors">
+                {faq.q}
+                <span className="text-muted-foreground group-open:rotate-45 transition-transform text-lg leading-none">+</span>
+              </summary>
+              <p className="px-5 pb-4 text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
+            </details>
+          ))}
+        </div>
+      </Section>
+
+      {/* CTA */}
+      <section className="py-16 text-center">
+        <p className="text-muted-foreground text-sm mb-4">¿Listo para empezar?</p>
+        <Button size="lg" asChild className="glow-aero">
           <Link href="/request-center">
-            Enviar solicitud
+            Pedir a Sergio
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
-      </PageHeader>
-
-      <Section title="Cómo solicitar trabajo">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { step: '01', title: 'Centro de solicitudes', desc: 'Completa el formulario con el tipo de solicitud y contexto.' },
-            { step: '02', title: 'Revisión', desc: 'Reviso la solicitud y respondo con cronograma y alcance propuesto.' },
-            { step: '03', title: 'Kickoff', desc: 'Agendamos la llamada de discovery y comenzamos con el plan de medición.' },
-          ].map((s) => (
-            <Card key={s.step} className="bg-card/50 border-border/60">
-              <CardHeader>
-                <span className="text-3xl font-bold text-primary/30">{s.step}</span>
-                <CardTitle className="text-base mt-2">{s.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{s.desc}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </Section>
-
-      <Section
-        title="Información que necesito"
-        description="Mientras más contexto proporciones, más rápido puedo responder."
-        className="bg-card/20 border-y border-border/40"
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {requiredInfo.map((info) => (
-            <div key={info.title} className="flex gap-3 p-4 rounded-lg border border-border/60 bg-card/30">
-              <FileText className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-              <div>
-                <h3 className="text-sm font-medium">{info.title}</h3>
-                <p className="text-xs text-muted-foreground mt-1">{info.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section title="SLAs & Prioridades">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left">
-                <th className="pb-3 font-medium text-muted-foreground">Prioridad</th>
-                <th className="pb-3 font-medium text-muted-foreground">Respuesta</th>
-                <th className="pb-3 font-medium text-muted-foreground">Resolución</th>
-                <th className="pb-3 font-medium text-muted-foreground hidden md:table-cell">Descripción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {slas.map((sla) => (
-                <tr key={sla.priority} className="border-b border-border/40">
-                  <td className="py-4">
-                    <Badge variant="outline" className={priorityColors[sla.priority]}>
-                      {sla.priority}
-                    </Badge>
-                  </td>
-                  <td className="py-4">
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                      {sla.response}
-                    </span>
-                  </td>
-                  <td className="py-4">{sla.resolution}</td>
-                  <td className="py-4 text-muted-foreground hidden md:table-cell">{sla.description}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Section>
-
-      <Section title="Preguntas frecuentes" className="bg-card/20 border-y border-border/40">
-        <div className="space-y-4 max-w-3xl">
-          {faqs.map((faq) => (
-            <div key={faq.q} className="p-5 rounded-lg border border-border/60 bg-card/30">
-              <h3 className="font-medium flex items-start gap-2">
-                <HelpCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                {faq.q}
-              </h3>
-              <p className="mt-2 text-sm text-muted-foreground pl-6">{faq.a}</p>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section>
-        <div className="flex items-start gap-4 p-6 rounded-xl border border-signal/30 bg-signal/5 max-w-2xl">
-          <AlertTriangle className="h-5 w-5 text-signal shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-medium">Tiempos de respuesta</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Horario laboral: Lun–Vie, 9:00–18:00 CET. Solicitudes P0 se atienden fuera de horario.
-            </p>
-          </div>
-        </div>
-      </Section>
+      </section>
     </>
   );
 }

@@ -25,9 +25,8 @@ export default function ValueCenterPage() {
   return (
     <>
       <CommandCenterTopBar
-        title="Analytics Value Center"
-        subtitle="Impacto demostrable para liderazgo · ROI del programa de Analytics"
-        badge="Executive"
+        title="Nuestro impacto"
+        subtitle="Lo que Analytics ha conseguido para el negocio — en números que importan"
       />
 
       <div className="p-6 space-y-8">

@@ -43,7 +43,7 @@ export function ChatPanel({ module, placeholder, suggestions = [], apiEndpoint }
     } catch {
       setMessages((prev) => [...prev, {
         role: 'assistant',
-        content: 'No pude procesar tu consulta. Verifica que el servicio de IA esté activo.',
+        content: 'Ups, no pude responder ahora. Intenta de nuevo o escríbenos en Pedir algo.',
       }]);
     } finally {
       setLoading(false);
@@ -56,7 +56,7 @@ export function ChatPanel({ module, placeholder, suggestions = [], apiEndpoint }
         {messages.length === 0 && (
           <div className="text-center py-12">
             <Bot className="h-10 w-10 text-primary/40 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">¿En qué puedo ayudarte?</p>
+            <p className="text-sm text-muted-foreground">Hola — escribe lo que necesitas en tus palabras</p>
             {suggestions.length > 0 && (
               <div className="flex flex-wrap justify-center gap-2 mt-6 max-w-lg mx-auto">
                 {suggestions.map((s) => (
@@ -109,7 +109,7 @@ export function ChatPanel({ module, placeholder, suggestions = [], apiEndpoint }
               <Loader2 className="h-3.5 w-3.5 text-primary animate-spin" />
             </div>
             <div className="bg-secondary/50 rounded-xl px-4 py-2.5 text-sm text-muted-foreground">
-              Analizando...
+              Pensando...
             </div>
           </div>
         )}

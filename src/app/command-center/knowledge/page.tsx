@@ -27,8 +27,8 @@ export default async function KnowledgeHubPage() {
   return (
     <>
       <CommandCenterTopBar
-        title="Analytics Knowledge Hub"
-        subtitle="Documentación tipo Notion · Versionado · Best Practices"
+        title="Guías y documentación"
+        subtitle="Cómo hacemos las cosas — por si te interesa el detalle"
       />
 
       <div className="p-6 space-y-8">

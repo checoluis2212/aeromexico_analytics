@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, ArrowUpRight, Zap } from 'lucide-react';
 import type { AnalyticsHealth, Report } from '@/types/command-center';
 
-export const metadata = { title: 'Executive Dashboard' };
+export const metadata = { title: 'Resumen' };
 
 export default async function ExecutiveDashboardPage() {
   const supabase = await createClient();
@@ -29,36 +29,37 @@ export default async function ExecutiveDashboardPage() {
   return (
     <>
       <CommandCenterTopBar
-        title="Executive Dashboard"
-        subtitle="Visibilidad del programa de Analytics · Aerolínea global"
-        badge="Live"
+        title="Así vamos"
+        subtitle="Un vistazo rápido — sin jerga técnica"
       />
 
-      <div className="p-6 space-y-8">
-        {/* Health Score Hero */}
-        <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card/50 to-card/30 p-8">
-          <div className="absolute inset-0 grid-pattern opacity-20" />
-          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+      <div className="p-5 space-y-6">
+        <div className="relative overflow-hidden rounded-xl border border-border/50 bg-card/30 p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
             <div>
-              <p className="text-xs uppercase tracking-widest text-primary font-semibold">Analytics Health Score</p>
-              <div className="flex items-end gap-3 mt-2">
-                <span className="text-6xl font-bold tabular-nums">{healthScore}</span>
-                <span className="text-2xl text-muted-foreground mb-2">/100</span>
+              <p className="text-xs text-muted-foreground">Salud general de Analytics</p>
+              <div className="flex items-end gap-2 mt-1">
+                <span className="text-5xl font-bold tabular-nums">{healthScore}</span>
+                <span className="text-lg text-muted-foreground mb-1">de 100</span>
               </div>
               <p className="text-sm text-muted-foreground mt-2 max-w-md">
-                Score compuesto de tracking, gobernanza, reporting, calidad de datos y autoservicio.
+                {healthScore >= 75
+                  ? 'Vamos bien. Los datos están llegando y el equipo responde a tiempo.'
+                  : healthScore >= 50
+                    ? 'Hay áreas por mejorar, pero nada crítico. Revisa los reportes más usados abajo.'
+                    : 'Necesitamos atención en algunas áreas. Escríbenos si algo te bloquea.'}
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'GA4', status: h?.ga4_status ?? 'healthy' },
-                { label: 'BigQuery', status: h?.bigquery_status ?? 'healthy' },
-                { label: 'GTM', status: h?.gtm_status ?? 'healthy' },
+                { label: 'GA4', status: h?.ga4_status ?? 'healthy', ok: 'Funcionando' },
+                { label: 'BigQuery', status: h?.bigquery_status ?? 'healthy', ok: 'Funcionando' },
+                { label: 'GTM', status: h?.gtm_status ?? 'healthy', ok: 'Funcionando' },
               ].map((s) => (
-                <div key={s.label} className="text-center p-3 rounded-xl bg-background/50 border border-border/40">
-                  <p className="text-xs text-muted-foreground">{s.label}</p>
-                  <Badge variant="outline" className="mt-1 text-[10px] border-radar/40 text-radar capitalize">
-                    {s.status}
+                <div key={s.label} className="text-center p-2.5 rounded-lg bg-background/60 border border-border/30">
+                  <p className="text-[11px] text-muted-foreground">{s.label}</p>
+                  <Badge variant="outline" className="mt-1 text-[10px] border-radar/40 text-radar">
+                    {s.status === 'healthy' ? s.ok : s.status}
                   </Badge>
                 </div>
               ))}
@@ -66,16 +67,14 @@ export default async function ExecutiveDashboardPage() {
           </div>
         </div>
 
-        {/* KPI Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Solicitudes abiertas" value={openCount ?? 12} icon="inbox" delay={0} />
-          <StatCard label="Completadas (Q2)" value={doneCount ?? 34} icon="checkCircle2" trend="up" change="+18% vs Q1" delay={0.05} />
-          <StatCard label="Lead Time prom." value="4.2d" icon="clock" trend="down" change="-12% mejora" delay={0.1} />
-          <StatCard label="Cycle Time prom." value="2.8d" icon="activity" trend="down" change="-8% mejora" delay={0.15} />
-          <StatCard label="Tracking Coverage" value={`${h?.tracking_coverage ?? 84.5}%`} icon="target" delay={0.2} />
-          <StatCard label="Horas ahorradas" value={`${(h?.hours_saved ?? 1240).toLocaleString()}h`} icon="trendUp" trend="up" change="YTD 2026" delay={0.25} />
-          <StatCard label="ROI Analytics" value={`$${((h?.roi_estimate ?? 485000) / 1000).toFixed(0)}K`} icon="dollarSign" trend="up" change="Estimado anual" delay={0.3} />
-          <StatCard label="Reportes activos" value={(topReports ?? []).length > 0 ? '15+' : '15'} icon="barChart3" delay={0.35} />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <StatCard label="Pendientes" value={openCount ?? 12} icon="inbox" delay={0} />
+          <StatCard label="Entregados este trimestre" value={doneCount ?? 34} icon="checkCircle2" trend="up" change="Gracias por la paciencia" delay={0.05} />
+          <StatCard label="Tiempo de respuesta" value="~4 días" icon="clock" trend="down" change="Mejorando" delay={0.1} />
+          <StatCard label="Cobertura de medición" value={`${h?.tracking_coverage ?? 84.5}%`} icon="target" delay={0.15} />
+          <StatCard label="Horas que te ahorramos" value={`${(h?.hours_saved ?? 1240).toLocaleString()}h`} icon="trendUp" trend="up" change="Este año" delay={0.2} />
+          <StatCard label="Valor estimado" value={`$${((h?.roi_estimate ?? 485000) / 1000).toFixed(0)}K`} icon="dollarSign" trend="up" change="Para el negocio" delay={0.25} />
+          <StatCard label="Reportes disponibles" value={(topReports ?? []).length > 0 ? String((topReports ?? []).length) : '6+'} icon="barChart3" delay={0.3} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -84,7 +83,7 @@ export default async function ExecutiveDashboardPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-primary" />
-                Top Reportes Solicitados
+                Top Reportes — los que más usan tus colegas
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -111,7 +110,7 @@ export default async function ExecutiveDashboardPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Zap className="h-4 w-4 text-primary" />
-                Próximas Iniciativas
+                Lo que viene en camino
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -136,7 +135,7 @@ export default async function ExecutiveDashboardPage() {
         {/* Recent Activity */}
         <Card className="bg-card/50 border-border/60">
           <CardHeader>
-            <CardTitle className="text-base">Actividad Reciente</CardTitle>
+            <CardTitle className="text-base">Últimos movimientos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">

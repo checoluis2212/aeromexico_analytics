@@ -19,9 +19,8 @@ export default async function WorkspacePage() {
   return (
     <>
       <CommandCenterTopBar
-        title="My Workspace"
-        subtitle="Vista personal · Analytics Lead"
-        badge={sprint?.name ?? 'Sprint activo'}
+        title="Mi espacio"
+        subtitle="Tu bandeja personal — solo para el equipo Analytics"
       />
 
       <div className="p-6 space-y-6">

@@ -4,20 +4,18 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { PageHeader } from '@/components/layout/page-header';
-import { Section } from '@/components/layout/section';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { roleLabels } from '@/lib/constants';
+import { siteConfig } from '@/lib/constants';
+import { getPostLoginPath } from '@/lib/auth/access';
 import { toast } from 'sonner';
-import { Loader2, Lock, Radar } from 'lucide-react';
+import { Loader2, Plane } from 'lucide-react';
 
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect') ?? '/hub';
+  const redirect = searchParams.get('redirect');
   const authError = searchParams.get('error');
 
   const [email, setEmail] = useState('');
@@ -32,7 +30,7 @@ export default function LoginForm() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      toast.error('Error de autenticación', { description: error.message });
+      toast.error('No pudimos iniciar sesión', { description: error.message });
       setLoading(false);
       return;
     }
@@ -40,96 +38,94 @@ export default function LoginForm() {
     const { data: { user } } = await supabase.auth.getUser();
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, acc_role')
       .eq('id', user!.id)
       .single();
 
-    if (!profile || !['admin', 'consultant'].includes(profile.role)) {
-      await supabase.auth.signOut();
-      toast.error('Acceso no autorizado', {
-        description: 'Solo usuarios internos (administrador o consultor) pueden acceder al Hub.',
+    if (!profile) {
+      toast.error('Perfil no encontrado', {
+        description: 'Escríbele a Sergio para activar tu cuenta.',
       });
       setLoading(false);
       return;
     }
 
-    toast.success('Bienvenido al Hub de analytics');
-    router.push(redirect);
+    toast.success('Bienvenido');
+    router.push(getPostLoginPath(profile, redirect));
     router.refresh();
   }
 
   return (
-    <>
-      <PageHeader
-        badge="Acceso interno"
-        title="Inicio de sesión — Hub"
-        description="Acceso restringido a usuarios internos con rol administrador o consultor."
-      />
+    <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-sm">
+        {authError === 'unauthorized' && (
+          <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            No tienes acceso a esa sección. Usa Mis pedidos o pídele a Sergio permisos de analytics.
+          </div>
+        )}
 
-      <Section>
-        <div className="mx-auto max-w-md">
-          {authError === 'unauthorized' && (
-            <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-              No tienes permisos para acceder al Hub. Contacta al administrador.
+        <div className="rounded-xl border border-border/50 bg-card/30 p-6 backdrop-blur-sm">
+          <div className="text-center mb-6">
+            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20 mb-3">
+              <Plane className="h-5 w-5 text-primary" />
             </div>
-          )}
+            <h1 className="text-lg font-semibold">Entrar</h1>
+            <p className="text-xs text-muted-foreground mt-1">
+              {siteConfig.org} · Ver y gestionar tus pedidos
+            </p>
+          </div>
 
-          <Card className="bg-card/50 border-border/60">
-            <CardHeader className="text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 mb-2">
-                <Radar className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle>Iniciar sesión</CardTitle>
-              <CardDescription>Working With Sergio — Portal interno</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div>
-                  <Label htmlFor="email">Correo electrónico</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="mt-1.5"
-                    placeholder="sergio@aero-analytics.com"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="password">Contraseña</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="mt-1.5"
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Lock className="mr-2 h-4 w-4" />
-                  )}
-                  Acceder al Hub
-                </Button>
-              </form>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <Label htmlFor="email" className="text-xs">Correo</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="mt-1.5 h-9"
+                placeholder="tu.correo@aeromexico.com"
+                autoComplete="email"
+              />
+            </div>
+            <div>
+              <Label htmlFor="password" className="text-xs">Contraseña</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="mt-1.5 h-9"
+                autoComplete="current-password"
+              />
+            </div>
+            <Button type="submit" className="w-full h-9" disabled={loading}>
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Entrar
+            </Button>
+          </form>
 
-              <p className="mt-4 text-center text-xs text-muted-foreground">
-                Roles permitidos: {roleLabels.admin}, {roleLabels.consultant}
-              </p>
+          <p className="mt-4 text-center text-[11px] text-muted-foreground leading-relaxed">
+            Entra para ver el estado de tus pedidos a {siteConfig.author}.
+            <br />
+            ¿Primera vez? Escríbele a Sergio para que te cree la cuenta.
+          </p>
 
-              <p className="mt-4 text-center text-xs text-muted-foreground">
-                <Link href="/" className="hover:text-foreground transition-colors">
-                  ← Volver al portal público
-                </Link>
-              </p>
-            </CardContent>
-          </Card>
+          <p className="mt-3 text-center">
+            <Link href="/request-center" className="text-xs text-primary hover:underline">
+              Pedir algo sin cuenta →
+            </Link>
+          </p>
+
+          <p className="mt-4 text-center">
+            <Link href="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              ← Volver al inicio
+            </Link>
+          </p>
         </div>
-      </Section>
-    </>
+      </div>
+    </div>
   );
 }

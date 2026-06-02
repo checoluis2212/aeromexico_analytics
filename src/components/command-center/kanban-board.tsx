@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -9,6 +9,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
@@ -63,9 +64,43 @@ function SortableCard({ item }: { item: BoardItem }) {
   );
 }
 
+function DroppableColumn({
+  status,
+  label,
+  color,
+  count,
+  children,
+}: {
+  status: DeliveryStatus;
+  label: string;
+  color: string;
+  count: number;
+  children: ReactNode;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: status });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        'flex-shrink-0 w-72 rounded-xl border border-border/60 bg-card/20 transition-colors',
+        isOver && 'border-primary/50 bg-primary/5'
+      )}
+    >
+      <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/40">
+        <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-md', color)}>
+          {label}
+        </span>
+        <span className="text-xs text-muted-foreground">{count}</span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
 interface KanbanBoardProps {
   initialItems: BoardItem[];
-  onStatusChange?: (id: string, status: DeliveryStatus) => void;
+  onStatusChange?: (id: string, status: DeliveryStatus) => void | Promise<void>;
 }
 
 export function KanbanBoard({ initialItems, onStatusChange }: KanbanBoardProps) {
@@ -81,19 +116,37 @@ export function KanbanBoard({ initialItems, onStatusChange }: KanbanBoardProps) 
     setActiveId(event.active.id as string);
   }
 
-  function handleDragEnd(event: DragEndEvent) {
+  function resolveStatus(overId: string): DeliveryStatus | null {
+    if (DELIVERY_STATUSES.some((s) => s.value === overId)) {
+      return overId as DeliveryStatus;
+    }
+    const overItem = items.find((i) => i.id === overId);
+    return overItem?.status ?? null;
+  }
+
+  async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     setActiveId(null);
     if (!over) return;
 
-    const newStatus = over.id as DeliveryStatus;
+    const newStatus = resolveStatus(over.id as string);
     const itemId = active.id as string;
+    const current = items.find((i) => i.id === itemId);
 
-    if (DELIVERY_STATUSES.some((s) => s.value === newStatus)) {
+    if (!newStatus || !current || current.status === newStatus) return;
+
+    const previousStatus = current.status;
+
+    setItems((prev) =>
+      prev.map((item) => (item.id === itemId ? { ...item, status: newStatus } : item))
+    );
+
+    try {
+      await onStatusChange?.(itemId, newStatus);
+    } catch {
       setItems((prev) =>
-        prev.map((item) => (item.id === itemId ? { ...item, status: newStatus } : item))
+        prev.map((item) => (item.id === itemId ? { ...item, status: previousStatus } : item))
       );
-      onStatusChange?.(itemId, newStatus);
     }
   }
 
@@ -110,25 +163,21 @@ export function KanbanBoard({ initialItems, onStatusChange }: KanbanBoardProps) 
         {DELIVERY_STATUSES.map((col) => {
           const colItems = items.filter((i) => i.status === col.value);
           return (
-            <div
+            <DroppableColumn
               key={col.value}
-              id={col.value}
-              className="flex-shrink-0 w-72 rounded-xl border border-border/60 bg-card/20"
+              status={col.value}
+              label={col.label}
+              color={col.color}
+              count={colItems.length}
             >
-              <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/40">
-                <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-md', col.color)}>
-                  {col.label}
-                </span>
-                <span className="text-xs text-muted-foreground">{colItems.length}</span>
-              </div>
               <SortableContext items={colItems.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-                <div className="p-2 space-y-2 min-h-[120px]">
+                <div className="p-2 space-y-2 min-h-[160px]">
                   {colItems.map((item) => (
                     <SortableCard key={item.id} item={item} />
                   ))}
                 </div>
               </SortableContext>
-            </div>
+            </DroppableColumn>
           );
         })}
       </div>

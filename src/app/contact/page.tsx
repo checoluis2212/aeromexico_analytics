@@ -43,9 +43,9 @@ export default function ContactPage() {
   return (
     <>
       <PageHeader
-        badge="Contacto"
-        title="Contacto"
-        description="Para consultas generales, assessments o colaboraciones."
+        badge="Contacto directo"
+        title="Escríbele a Sergio"
+        description="Para algo que no encaje en el formulario de pedidos, o una consulta general."
       />
 
       <Section>

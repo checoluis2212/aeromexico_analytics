@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { getPostLoginPath, hasInternalAccess } from '@/lib/auth/access';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -24,40 +25,41 @@ export async function updateSession(request: NextRequest) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
+  const pathname = request.nextUrl.pathname;
 
-  const protectedPaths = ['/hub', '/command-center'];
-  const isProtected = protectedPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path)
-  );
+  const authRequiredPaths = ['/hub', '/command-center', '/mis-pedidos'];
+  const needsAuth = authRequiredPaths.some((path) => pathname.startsWith(path));
 
-  if (isProtected && !user) {
+  if (needsAuth && !user) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
-    url.searchParams.set('redirect', request.nextUrl.pathname);
+    url.searchParams.set('redirect', pathname);
     return NextResponse.redirect(url);
   }
 
-  if (user && (request.nextUrl.pathname.startsWith('/hub') || request.nextUrl.pathname.startsWith('/command-center'))) {
+  if (user && (pathname.startsWith('/hub') || pathname.startsWith('/command-center'))) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role, acc_role')
       .eq('id', user.id)
       .single();
 
-    const legacyOk = profile && ['admin', 'consultant'].includes(profile.role);
-    const accOk = !!profile?.acc_role;
-
-    if (!legacyOk && !accOk) {
+    if (!hasInternalAccess(profile)) {
       const url = request.nextUrl.clone();
-      url.pathname = '/login';
-      url.searchParams.set('error', 'unauthorized');
+      url.pathname = '/mis-pedidos';
       return NextResponse.redirect(url);
     }
   }
 
-  if (user && request.nextUrl.pathname === '/login') {
+  if (user && pathname === '/login') {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, acc_role')
+      .eq('id', user.id)
+      .single();
+
     const url = request.nextUrl.clone();
-    url.pathname = '/command-center/executive';
+    url.pathname = getPostLoginPath(profile, request.nextUrl.searchParams.get('redirect'));
     return NextResponse.redirect(url);
   }
 

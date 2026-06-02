@@ -33,8 +33,8 @@ export default function DataDictionaryPage() {
   return (
     <>
       <CommandCenterTopBar
-        title="Data Dictionary"
-        subtitle="KPIs · Métricas · Dimensiones · Definiciones de negocio"
+        title="Glosario"
+        subtitle="¿Qué significa cada métrica? Busca aquí, sin llamar a nadie"
       />
 
       <div className="p-6 space-y-6">

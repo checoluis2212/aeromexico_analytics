@@ -2,85 +2,113 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
 import {
-  LayoutDashboard, Inbox, Kanban, Store, MessageSquare, Zap,
-  BookOpen, Library, Sparkles, TrendingUp, Award, User, Plane,
-  ChevronLeft, ChevronRight,
+  Home, PlusCircle, BarChart3, Columns3, MessageCircle, Inbox,
+  LayoutGrid, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ACC_NAV } from '@/types/command-center';
+import { ACC_NAV_PRIMARY } from '@/types/command-center';
+import { siteConfig } from '@/lib/constants';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 const iconMap: Record<string, React.ReactNode> = {
-  LayoutDashboard: <LayoutDashboard className="h-4 w-4" />,
-  Inbox: <Inbox className="h-4 w-4" />,
-  Kanban: <Kanban className="h-4 w-4" />,
-  Store: <Store className="h-4 w-4" />,
-  MessageSquare: <MessageSquare className="h-4 w-4" />,
-  Zap: <Zap className="h-4 w-4" />,
-  BookOpen: <BookOpen className="h-4 w-4" />,
-  Library: <Library className="h-4 w-4" />,
-  Sparkles: <Sparkles className="h-4 w-4" />,
-  TrendingUp: <TrendingUp className="h-4 w-4" />,
-  Award: <Award className="h-4 w-4" />,
-  User: <User className="h-4 w-4" />,
+  Home: <Home className="h-[18px] w-[18px]" strokeWidth={1.75} />,
+  PlusCircle: <PlusCircle className="h-[18px] w-[18px]" strokeWidth={1.75} />,
+  BarChart3: <BarChart3 className="h-[18px] w-[18px]" strokeWidth={1.75} />,
+  Columns3: <Columns3 className="h-[18px] w-[18px]" strokeWidth={1.75} />,
+  MessageCircle: <MessageCircle className="h-[18px] w-[18px]" strokeWidth={1.75} />,
+  Inbox: <Inbox className="h-[18px] w-[18px]" strokeWidth={1.75} />,
 };
 
 export function CommandCenterSidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
+  const isResourcesActive = pathname.startsWith('/command-center/resources') ||
+    ['/events', '/dictionary', '/knowledge', '/maturity', '/value', '/workspace']
+      .some((p) => pathname.includes(p));
+
   return (
     <aside
       className={cn(
-        'flex flex-col border-r border-border/60 bg-card/40 backdrop-blur-xl transition-all duration-300 h-screen sticky top-0',
-        collapsed ? 'w-16' : 'w-64'
+        'flex flex-col border-r border-border/40 bg-card/20 transition-all duration-200 h-screen sticky top-0',
+        collapsed ? 'w-[52px]' : 'w-[188px]'
       )}
     >
-      <div className="flex items-center gap-3 px-4 h-16 border-b border-border/60">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 ring-1 ring-primary/25">
-          <Plane className="h-4 w-4 text-primary" />
-        </div>
+      {/* Brand */}
+      <div className="flex items-center gap-2.5 px-3 h-14 border-b border-border/40">
         {!collapsed && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-w-0">
-            <p className="text-xs font-bold tracking-wide truncate">ANALYTICS</p>
-            <p className="text-[10px] text-muted-foreground truncate">Command Center</p>
-          </motion.div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold tracking-tight truncate">{siteConfig.author}</p>
+            <p className="text-[11px] text-muted-foreground truncate">{siteConfig.role}</p>
+          </div>
         )}
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-        {ACC_NAV.map((item) => {
-          const active = pathname === item.href || (item.href !== '/command-center' && pathname.startsWith(item.href));
+      {/* CTA */}
+      {!collapsed && (
+        <div className="px-2 pt-3">
+          <Link
+            href="/command-center/requests"
+            className="flex items-center justify-center gap-2 w-full rounded-lg bg-primary text-primary-foreground text-sm font-medium py-2 hover:bg-primary/90 transition-colors"
+          >
+            <PlusCircle className="h-4 w-4" />
+            Pedir a Sergio
+          </Link>
+        </div>
+      )}
+
+      {/* Primary nav */}
+      <nav className="flex-1 py-3 px-2 space-y-0.5">
+        {ACC_NAV_PRIMARY.filter((item) => item.href !== '/command-center/requests').map((item) => {
+          const active = pathname === item.href || pathname.startsWith(item.href + '/');
           return (
             <Link
               key={item.href}
               href={item.href}
+              title={collapsed ? item.label : item.hint}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all',
+                'flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] transition-colors',
                 active
-                  ? 'bg-primary/15 text-primary font-medium ring-1 ring-primary/20'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  ? 'bg-primary/10 text-primary font-medium'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40'
               )}
-              title={collapsed ? item.label : undefined}
             >
-              {iconMap[item.icon]}
+              <span className="shrink-0">{iconMap[item.icon]}</span>
               {!collapsed && <span className="truncate">{item.label}</span>}
             </Link>
           );
         })}
+
+        {!collapsed && (
+          <div className="pt-4 mt-2 border-t border-border/30">
+            <Link
+              href="/command-center/resources"
+              className={cn(
+                'flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] transition-colors',
+                isResourcesActive
+                  ? 'bg-secondary/60 text-foreground font-medium'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40'
+              )}
+            >
+              <LayoutGrid className="h-[18px] w-[18px]" strokeWidth={1.75} />
+              <span>Más recursos</span>
+            </Link>
+          </div>
+        )}
       </nav>
 
-      <div className="p-2 border-t border-border/60">
+      {/* Collapse */}
+      <div className="p-2 border-t border-border/40">
         <Button
           variant="ghost"
           size="icon"
-          className="w-full"
+          className="w-full h-8 text-muted-foreground"
           onClick={() => setCollapsed(!collapsed)}
+          aria-label={collapsed ? 'Expandir menú' : 'Contraer menú'}
         >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
         </Button>
       </div>
     </aside>

@@ -13,33 +13,36 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { roleLabels } from '@/lib/constants';
-import { LogIn, LogOut, LayoutDashboard, User } from 'lucide-react';
+import { hasInternalAccess } from '@/lib/auth/access';
+import { LogIn, LogOut, LayoutDashboard, User, Inbox } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export function AuthButton() {
   const router = useRouter();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [accRole, setAccRole] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
 
+    function loadProfile(userId: string) {
+      supabase.from('profiles').select('role, acc_role').eq('id', userId).single()
+        .then(({ data }) => {
+          setRole(data?.role ?? null);
+          setAccRole(data?.acc_role ?? null);
+        });
+    }
+
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
-      if (user) {
-        supabase.from('profiles').select('role').eq('id', user.id).single()
-          .then(({ data }) => setRole(data?.role ?? null));
-      }
+      if (user) loadProfile(user.id);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (session?.user) {
-        supabase.from('profiles').select('role').eq('id', session.user.id).single()
-          .then(({ data }) => setRole(data?.role ?? null));
-      } else {
-        setRole(null);
-      }
+      if (session?.user) loadProfile(session.user.id);
+      else { setRole(null); setAccRole(null); }
     });
 
     return () => subscription.unsubscribe();
@@ -52,7 +55,9 @@ export function AuthButton() {
     router.refresh();
   }
 
-  const isInternal = role === 'admin' || role === 'consultant';
+  const canAccessInternal = hasInternalAccess(
+    role ? { role, acc_role: accRole } : null
+  );
   const initials = user?.email?.slice(0, 2).toUpperCase() ?? 'U';
 
   if (!user) {
@@ -79,14 +84,30 @@ export function AuthButton() {
           {role && <p className="text-[10px] text-muted-foreground">{roleLabels[role] ?? role}</p>}
         </div>
         <DropdownMenuSeparator />
-        {isInternal && (
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={() => router.push('/hub')}
-          >
-            <LayoutDashboard className="mr-2 h-4 w-4" />
-            Hub de analytics
-          </DropdownMenuItem>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() => router.push('/mis-pedidos')}
+        >
+          <Inbox className="mr-2 h-4 w-4" />
+          Mis pedidos
+        </DropdownMenuItem>
+        {canAccessInternal && (
+          <>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => router.push('/command-center/executive')}
+            >
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              Command Center
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => router.push('/hub')}
+            >
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              Hub legacy
+            </DropdownMenuItem>
+          </>
         )}
         <DropdownMenuItem disabled>
           <User className="mr-2 h-4 w-4" />

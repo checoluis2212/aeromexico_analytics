@@ -31,8 +31,8 @@ export default async function MaturityCenterPage() {
   return (
     <>
       <CommandCenterTopBar
-        title="Analytics Maturity Center"
-        subtitle="Evaluación 0-100 · Fortalezas · Riesgos · Roadmap"
+        title="Salud del programa"
+        subtitle="Dónde vamos bien y dónde hay que poner atención"
       />
 
       <div className="p-6 space-y-8">

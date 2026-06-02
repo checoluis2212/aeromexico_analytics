@@ -52,36 +52,36 @@ export const ACC_ROLES: Record<AccRole, { label: string; permissions: string[] }
 };
 
 export const DELIVERY_STATUSES: { value: DeliveryStatus; label: string; color: string }[] = [
-  { value: 'backlog', label: 'Backlog', color: 'bg-muted' },
-  { value: 'discovery', label: 'Discovery', color: 'bg-blue-500/20 text-blue-400' },
-  { value: 'requirements', label: 'Requirements', color: 'bg-purple-500/20 text-purple-400' },
-  { value: 'ready_for_development', label: 'Ready for Dev', color: 'bg-cyan-500/20 text-cyan-400' },
-  { value: 'development', label: 'Development', color: 'bg-primary/20 text-primary' },
-  { value: 'analytics_qa', label: 'Analytics QA', color: 'bg-signal/20 text-signal' },
-  { value: 'ready_for_release', label: 'Ready for Release', color: 'bg-radar/20 text-radar' },
-  { value: 'done', label: 'Done', color: 'bg-radar/30 text-radar' },
-  { value: 'blocked', label: 'Blocked', color: 'bg-destructive/20 text-destructive' },
+  { value: 'backlog', label: 'Por hacer', color: 'bg-muted' },
+  { value: 'discovery', label: 'Entendiendo', color: 'bg-blue-500/20 text-blue-400' },
+  { value: 'requirements', label: 'Definiendo', color: 'bg-purple-500/20 text-purple-400' },
+  { value: 'ready_for_development', label: 'Listo para build', color: 'bg-cyan-500/20 text-cyan-400' },
+  { value: 'development', label: 'En desarrollo', color: 'bg-primary/20 text-primary' },
+  { value: 'analytics_qa', label: 'Revisando', color: 'bg-signal/20 text-signal' },
+  { value: 'ready_for_release', label: 'Casi listo', color: 'bg-radar/20 text-radar' },
+  { value: 'done', label: 'Listo ✓', color: 'bg-radar/30 text-radar' },
+  { value: 'blocked', label: 'Bloqueado', color: 'bg-destructive/20 text-destructive' },
 ];
 
 export const ACC_REQUEST_TYPES: { value: AccRequestType; label: string; icon: string }[] = [
-  { value: 'dashboard', label: 'Nuevo Dashboard', icon: 'BarChart3' },
-  { value: 'tracking', label: 'Nuevo Tracking', icon: 'Radio' },
-  { value: 'event', label: 'Nuevo Evento', icon: 'Zap' },
-  { value: 'investigation', label: 'Investigación', icon: 'Search' },
-  { value: 'funnel', label: 'Funnel Analysis', icon: 'Filter' },
-  { value: 'qa_analytics', label: 'QA Analytics', icon: 'ShieldCheck' },
-  { value: 'gtm_implementation', label: 'Implementación GTM', icon: 'Tag' },
-  { value: 'bigquery', label: 'BigQuery Request', icon: 'Database' },
+  { value: 'dashboard', label: 'Un dashboard o reporte', icon: 'BarChart3' },
+  { value: 'tracking', label: 'Medir algo nuevo', icon: 'Radio' },
+  { value: 'event', label: 'Un evento en web o app', icon: 'Zap' },
+  { value: 'investigation', label: 'Investigar un dato', icon: 'Search' },
+  { value: 'funnel', label: 'Analizar un embudo', icon: 'Filter' },
+  { value: 'qa_analytics', label: 'Revisar que los datos estén bien', icon: 'ShieldCheck' },
+  { value: 'gtm_implementation', label: 'Cambio en tags (GTM)', icon: 'Tag' },
+  { value: 'bigquery', label: 'Datos en BigQuery', icon: 'Database' },
 ];
 
 export const REPORT_CATEGORIES: { value: ReportCategory; label: string; icon: string }[] = [
   { value: 'acquisition', label: 'Adquisición', icon: 'UserPlus' },
   { value: 'ecommerce', label: 'E-commerce', icon: 'ShoppingCart' },
-  { value: 'revenue', label: 'Revenue', icon: 'DollarSign' },
-  { value: 'customer_journey', label: 'Customer Journey', icon: 'Route' },
+  { value: 'revenue', label: 'Ingresos', icon: 'DollarSign' },
+  { value: 'customer_journey', label: 'Journey del cliente', icon: 'Route' },
   { value: 'marketing', label: 'Marketing', icon: 'Megaphone' },
-  { value: 'mobile', label: 'Mobile', icon: 'Smartphone' },
-  { value: 'product_analytics', label: 'Product Analytics', icon: 'Box' },
+  { value: 'mobile', label: 'App móvil', icon: 'Smartphone' },
+  { value: 'product_analytics', label: 'Producto', icon: 'Box' },
 ];
 
 export const MATURITY_DIMENSIONS = [
@@ -89,20 +89,28 @@ export const MATURITY_DIMENSIONS = [
   'Experimentation', 'Self-Service', 'Documentation',
 ];
 
-export const ACC_NAV = [
-  { href: '/command-center/executive', label: 'Executive Dashboard', icon: 'LayoutDashboard', module: 'executive' },
-  { href: '/command-center/requests', label: 'Request Center', icon: 'Inbox', module: 'requests' },
-  { href: '/command-center/board', label: 'Delivery Board', icon: 'Kanban', module: 'board' },
-  { href: '/command-center/reports', label: 'Report Marketplace', icon: 'Store', module: 'reports' },
-  { href: '/command-center/discovery', label: 'Report Discovery', icon: 'MessageSquare', module: 'discovery' },
-  { href: '/command-center/events', label: 'Event Catalog', icon: 'Zap', module: 'events' },
-  { href: '/command-center/dictionary', label: 'Data Dictionary', icon: 'BookOpen', module: 'dictionary' },
-  { href: '/command-center/knowledge', label: 'Knowledge Hub', icon: 'Library', module: 'knowledge' },
-  { href: '/command-center/copilot', label: 'AI Copilot', icon: 'Sparkles', module: 'copilot' },
-  { href: '/command-center/maturity', label: 'Maturity Center', icon: 'TrendingUp', module: 'maturity' },
-  { href: '/command-center/value', label: 'Value Center', icon: 'Award', module: 'value' },
-  { href: '/command-center/workspace', label: 'My Workspace', icon: 'User', module: 'workspace' },
+/** Navegación principal — lo que un manager usa cada día */
+export const ACC_NAV_PRIMARY = [
+  { href: '/command-center/executive', label: 'Resumen', hint: 'Cómo vamos', icon: 'Home' },
+  { href: '/command-center/pedidos', label: 'Pedidos', hint: 'Filtra por usuario', icon: 'Inbox' },
+  { href: '/command-center/requests', label: 'Pedir a Sergio', hint: 'Pide lo que quieras', icon: 'PlusCircle' },
+  { href: '/command-center/reports', label: 'Reportes', hint: 'Encuentra tus datos', icon: 'BarChart3' },
+  { href: '/command-center/board', label: 'Avance', hint: 'En qué estamos', icon: 'Columns3' },
+  { href: '/command-center/copilot', label: 'Pregúntale', hint: 'Asistente con IA', icon: 'MessageCircle' },
 ];
+
+/** Recursos secundarios — accesibles desde /resources */
+export const ACC_NAV_RESOURCES = [
+  { href: '/command-center/events', label: 'Eventos', hint: 'Qué medimos en web y app', icon: 'Zap' },
+  { href: '/command-center/dictionary', label: 'Glosario', hint: 'Qué significa cada métrica', icon: 'BookOpen' },
+  { href: '/command-center/knowledge', label: 'Guías', hint: 'Cómo hacemos las cosas', icon: 'Library' },
+  { href: '/command-center/maturity', label: 'Salud del programa', hint: 'Fortalezas y riesgos', icon: 'TrendingUp' },
+  { href: '/command-center/value', label: 'Nuestro impacto', hint: 'Valor que generamos', icon: 'Award' },
+  { href: '/command-center/workspace', label: 'Mi espacio', hint: 'Para el equipo Analytics', icon: 'User' },
+];
+
+/** @deprecated Usar ACC_NAV_PRIMARY + ACC_NAV_RESOURCES */
+export const ACC_NAV = [...ACC_NAV_PRIMARY, ...ACC_NAV_RESOURCES];
 
 export interface Report {
   id: string;

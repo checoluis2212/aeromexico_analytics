@@ -6,9 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { REPORT_CATEGORIES } from '@/types/command-center';
 import type { Report } from '@/types/command-center';
-import { ExternalLink, Eye, Star } from 'lucide-react';
+import { ExternalLink, Eye, Star, MessageCircle } from 'lucide-react';
 
-export const metadata = { title: 'Report Marketplace' };
+export const metadata = { title: 'Reportes' };
 
 export default async function ReportMarketplacePage({
   searchParams,
@@ -26,27 +26,33 @@ export default async function ReportMarketplacePage({
   return (
     <>
       <CommandCenterTopBar
-        title="Report Marketplace"
-        subtitle="Catálogo de reportes · Autoservicio para stakeholders"
+        title="Tus reportes"
+        subtitle="Abre un dashboard o pregúntale al asistente si no encuentras lo que buscas"
       />
 
-      <div className="p-6 space-y-6">
-        <div className="flex flex-wrap gap-2">
+      <div className="p-5 space-y-5">
+        <div className="flex flex-wrap items-center gap-2">
           <Link href="/command-center/reports">
-            <Badge variant={!category ? 'default' : 'outline'} className="cursor-pointer">Todos</Badge>
+            <Badge variant={!category ? 'default' : 'outline'} className="cursor-pointer text-xs">Todos</Badge>
           </Link>
           {REPORT_CATEGORIES.map((c) => (
             <Link key={c.value} href={`/command-center/reports?category=${c.value}`}>
-              <Badge variant={category === c.value ? 'default' : 'outline'} className="cursor-pointer">
+              <Badge variant={category === c.value ? 'default' : 'outline'} className="cursor-pointer text-xs">
                 {c.label}
               </Badge>
             </Link>
           ))}
+          <Link href="/command-center/copilot" className="ml-auto">
+            <Button variant="outline" size="sm" className="text-xs gap-1.5 h-7">
+              <MessageCircle className="h-3.5 w-3.5" />
+              ¿No lo encuentras? Pregúntale
+            </Button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {(reports as Report[] ?? []).map((report) => (
-            <Card key={report.id} className="bg-card/50 border-border/60 hover:border-primary/30 transition-all group">
+            <Card key={report.id} className="bg-card/30 border-border/40 hover:border-primary/25 transition-all group">
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">
                   <Badge variant="outline" className="text-[10px] capitalize">{report.category.replace('_', ' ')}</Badge>
@@ -60,7 +66,7 @@ export default async function ReportMarketplacePage({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Business Questions</p>
+                  <p className="text-[10px] text-muted-foreground mb-1.5">Responde preguntas como:</p>
                   <ul className="space-y-1">
                     {report.business_questions.slice(0, 2).map((q) => (
                       <li key={q} className="text-xs text-muted-foreground flex items-start gap-1.5">
@@ -86,7 +92,7 @@ export default async function ReportMarketplacePage({
         </div>
 
         {(!reports || reports.length === 0) && (
-          <p className="text-center text-muted-foreground py-12">Ejecuta migración 004 para cargar reportes seed.</p>
+          <p className="text-center text-muted-foreground py-12">Aún no hay reportes publicados. Mientras tanto, <Link href="/command-center/copilot" className="text-primary underline">pregúntale al asistente</Link>.</p>
         )}
       </div>
     </>

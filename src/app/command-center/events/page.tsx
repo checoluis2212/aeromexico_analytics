@@ -25,8 +25,8 @@ export default async function EventsCatalogPage() {
   return (
     <>
       <CommandCenterTopBar
-        title="Event Catalog"
-        subtitle="Flujo completo: Data Layer → GTM → GA4 → BigQuery → Dashboard"
+        title="Qué medimos"
+        subtitle="Los eventos que capturamos en web y app — de forma sencilla"
       />
 
       <div className="p-6 space-y-6">

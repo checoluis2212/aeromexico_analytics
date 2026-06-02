@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { assertSergioAdmin } from '@/lib/auth/guards';
 import { CommandCenterTopBar } from '@/components/command-center/top-bar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +8,7 @@ import { Inbox, AlertTriangle, CheckSquare, Kanban, TrendingUp, Clock } from 'lu
 export const metadata = { title: 'My Workspace' };
 
 export default async function WorkspacePage() {
+  await assertSergioAdmin();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 

@@ -3,66 +3,65 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Home, PlusCircle, BarChart3, Columns3, MessageCircle, Inbox,
-  LayoutGrid, ChevronLeft, ChevronRight,
+  Home, BarChart3, Columns3, MessageCircle, Inbox, Zap,
+  LayoutGrid, ChevronLeft, ChevronRight, Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ACC_NAV_PRIMARY } from '@/types/command-center';
+import { SERGIO_NAV_PRIMARY, STAKEHOLDER_NAV_PRIMARY, ACC_NAV_RESOURCES } from '@/types/command-center';
 import { siteConfig } from '@/lib/constants';
+import { useCommandCenterRole } from '@/components/command-center/command-center-context';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 const iconMap: Record<string, React.ReactNode> = {
   Home: <Home className="h-[18px] w-[18px]" strokeWidth={1.75} />,
-  PlusCircle: <PlusCircle className="h-[18px] w-[18px]" strokeWidth={1.75} />,
+  Inbox: <Inbox className="h-[18px] w-[18px]" strokeWidth={1.75} />,
   BarChart3: <BarChart3 className="h-[18px] w-[18px]" strokeWidth={1.75} />,
   Columns3: <Columns3 className="h-[18px] w-[18px]" strokeWidth={1.75} />,
   MessageCircle: <MessageCircle className="h-[18px] w-[18px]" strokeWidth={1.75} />,
-  Inbox: <Inbox className="h-[18px] w-[18px]" strokeWidth={1.75} />,
+  Zap: <Zap className="h-[18px] w-[18px]" strokeWidth={1.75} />,
 };
 
 export function CommandCenterSidebar() {
   const pathname = usePathname();
+  const appRole = useCommandCenterRole();
+  const isSergio = appRole === 'sergio_admin';
   const [collapsed, setCollapsed] = useState(false);
 
+  const nav = isSergio ? SERGIO_NAV_PRIMARY : STAKEHOLDER_NAV_PRIMARY;
+
   const isResourcesActive = pathname.startsWith('/command-center/resources') ||
-    ['/events', '/dictionary', '/knowledge', '/maturity', '/value', '/workspace']
-      .some((p) => pathname.includes(p));
+    ACC_NAV_RESOURCES.some((r) => pathname.startsWith(r.href));
 
   return (
     <aside
       className={cn(
-        'flex flex-col border-r border-border/40 bg-card/20 transition-all duration-200 h-screen sticky top-0',
-        collapsed ? 'w-[52px]' : 'w-[188px]'
+        'flex flex-col border-r border-border/40 bg-card/20 transition-all duration-200 sticky top-14 self-start',
+        collapsed ? 'w-[52px]' : 'w-[200px]',
+        'h-[calc(100vh-3.5rem)]'
       )}
     >
-      {/* Brand */}
-      <div className="flex items-center gap-2.5 px-3 h-14 border-b border-border/40">
+      <div className="flex items-center gap-2.5 px-3 h-12 border-b border-border/40">
         {!collapsed && (
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold tracking-tight truncate">{siteConfig.author}</p>
-            <p className="text-[11px] text-muted-foreground truncate">{siteConfig.role}</p>
+            <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
+              {isSergio ? (
+                <>
+                  <Shield className="h-3 w-3 text-primary" />
+                  Admin analytics
+                </>
+              ) : (
+                'Vista stakeholder'
+              )}
+            </p>
           </div>
         )}
       </div>
 
-      {/* CTA */}
-      {!collapsed && (
-        <div className="px-2 pt-3">
-          <Link
-            href="/command-center/requests"
-            className="flex items-center justify-center gap-2 w-full rounded-lg bg-primary text-primary-foreground text-sm font-medium py-2 hover:bg-primary/90 transition-colors"
-          >
-            <PlusCircle className="h-4 w-4" />
-            Pedir a Sergio
-          </Link>
-        </div>
-      )}
-
-      {/* Primary nav */}
-      <nav className="flex-1 py-3 px-2 space-y-0.5">
-        {ACC_NAV_PRIMARY.filter((item) => item.href !== '/command-center/requests').map((item) => {
-          const active = pathname === item.href || pathname.startsWith(item.href + '/');
+      <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
+        {nav.map((item) => {
+          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}
@@ -75,7 +74,7 @@ export function CommandCenterSidebar() {
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40'
               )}
             >
-              <span className="shrink-0">{iconMap[item.icon]}</span>
+              <span className="shrink-0">{iconMap[item.icon] ?? iconMap.Home}</span>
               {!collapsed && <span className="truncate">{item.label}</span>}
             </Link>
           );
@@ -95,11 +94,19 @@ export function CommandCenterSidebar() {
               <LayoutGrid className="h-[18px] w-[18px]" strokeWidth={1.75} />
               <span>Más recursos</span>
             </Link>
+            {!isSergio && (
+              <Link
+                href="/mis-pedidos"
+                className="flex items-center gap-2.5 rounded-md px-2.5 py-2 mt-1 text-[13px] text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+              >
+                <Inbox className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                <span>Mis pedidos</span>
+              </Link>
+            )}
           </div>
         )}
       </nav>
 
-      {/* Collapse */}
       <div className="p-2 border-t border-border/40">
         <Button
           variant="ghost"

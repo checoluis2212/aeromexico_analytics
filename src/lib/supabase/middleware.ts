@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { getPostLoginPath, hasInternalAccess } from '@/lib/auth/access';
+import { getPostLoginPath, canAccessCommandCenter, isSergioAdmin, isSergioOnlyRoute } from '@/lib/auth/access';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -40,13 +40,19 @@ export async function updateSession(request: NextRequest) {
   if (user && (pathname.startsWith('/hub') || pathname.startsWith('/command-center'))) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role, acc_role')
+      .select('role, acc_role, email')
       .eq('id', user.id)
       .single();
 
-    if (!hasInternalAccess(profile)) {
+    if (!canAccessCommandCenter(profile)) {
       const url = request.nextUrl.clone();
       url.pathname = '/mis-pedidos';
+      return NextResponse.redirect(url);
+    }
+
+    if (isSergioOnlyRoute(pathname) && !isSergioAdmin(profile)) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/command-center/executive';
       return NextResponse.redirect(url);
     }
   }
@@ -54,7 +60,7 @@ export async function updateSession(request: NextRequest) {
   if (user && pathname === '/login') {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role, acc_role')
+      .select('role, acc_role, email')
       .eq('id', user.id)
       .single();
 

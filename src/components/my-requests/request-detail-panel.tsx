@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/select';
 import { RequestStatusTracker } from '@/components/my-requests/request-status-tracker';
 import { CommentThread, type Comment } from '@/components/my-requests/comment-thread';
+import { RequestAcceptancePanel } from '@/components/my-requests/request-acceptance-panel';
+import { publicRequestLabel, type CapacityAdvice, type SergioDecision } from '@/lib/request-acceptance';
 import { mapDeliveryStatusForUser } from '@/lib/integrations/external-sync';
 import { priorityLabels, requestTypeLabels, siteConfig } from '@/lib/constants';
 import { DELIVERY_STATUSES, type DeliveryStatus } from '@/types/command-center';
@@ -38,6 +40,11 @@ export interface RequestDetail {
   updated_at: string;
   external_url: string | null;
   external_provider: string | null;
+  sergio_decision?: SergioDecision | null;
+  committed_due_date?: string | null;
+  sergio_notes?: string | null;
+  sergio_decided_at?: string | null;
+  ai_capacity_advice?: CapacityAdvice | null;
 }
 
 interface RequestDetailPanelProps {
@@ -57,6 +64,7 @@ export function RequestDetailPanel({
 }: RequestDetailPanelProps) {
   const router = useRouter();
   const status = request.delivery_status ?? request.status;
+  const decision = (request.sergio_decision ?? 'pending') as SergioDecision;
   const [deliveryStatus, setDeliveryStatus] = useState(status);
   const [saving, setSaving] = useState(false);
 
@@ -108,11 +116,39 @@ export function RequestDetailPanel({
                 )}
               </p>
             </div>
-            <Badge className="shrink-0">{mapDeliveryStatusForUser(deliveryStatus)}</Badge>
+            <Badge className="shrink-0">
+              {isInternal
+                ? mapDeliveryStatusForUser(deliveryStatus)
+                : publicRequestLabel(deliveryStatus, decision)}
+            </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <RequestStatusTracker status={deliveryStatus} />
+          <RequestStatusTracker status={decision === 'pending' && !isInternal ? 'submitted' : deliveryStatus} />
+
+          {!isInternal && decision === 'accepted' && request.committed_due_date && (
+            <p className="text-sm rounded-lg border border-radar/30 bg-radar/5 px-3 py-2 text-radar">
+              Fecha comprometida por Sergio:{' '}
+              {format(new Date(request.committed_due_date), "d 'de' MMMM yyyy", { locale: es })}
+            </p>
+          )}
+
+          {!isInternal && decision === 'rejected' && request.sergio_notes && (
+            <p className="text-sm rounded-lg border border-border/40 bg-secondary/20 px-3 py-2 text-muted-foreground">
+              {request.sergio_notes}
+            </p>
+          )}
+
+          {isInternal && (
+            <RequestAcceptancePanel
+              requestId={request.id}
+              decision={decision}
+              committedDueDate={request.committed_due_date ?? null}
+              sergioNotes={request.sergio_notes ?? null}
+              decidedAt={request.sergio_decided_at ?? null}
+              cachedAdvice={request.ai_capacity_advice ?? null}
+            />
+          )}
 
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline">{priorityLabels[request.priority]}</Badge>
@@ -128,23 +164,25 @@ export function RequestDetailPanel({
                 <p className="font-medium">{request.requester_name}</p>
                 <p className="text-xs text-muted-foreground">{request.requester_email}</p>
               </div>
-              <div className="flex items-center gap-2 ml-auto">
-                <Select
-                  value={deliveryStatus}
-                  onValueChange={(v) => updateStatus(v as DeliveryStatus)}
-                  disabled={saving}
-                >
-                  <SelectTrigger className="h-8 w-44 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DELIVERY_STATUSES.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-              </div>
+              {decision === 'accepted' && (
+                <div className="flex items-center gap-2 ml-auto">
+                  <Select
+                    value={deliveryStatus}
+                    onValueChange={(v) => updateStatus(v as DeliveryStatus)}
+                    disabled={saving}
+                  >
+                    <SelectTrigger className="h-8 w-44 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DELIVERY_STATUSES.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                </div>
+              )}
             </div>
           )}
 

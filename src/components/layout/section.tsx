@@ -34,7 +34,11 @@ interface FeatureCardProps {
 
 export function FeatureCard({ title, description, icon, className }: FeatureCardProps) {
   return (
-    <Card className={cn('bg-card/50 border-border/60 hover:border-primary/30 transition-all duration-300 group', className)}>
+    <Card className={cn(
+      'glass-card premium-border h-full transition-all duration-300 group',
+      'hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5',
+      className
+    )}>
       <CardHeader>
         {icon && (
           <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">

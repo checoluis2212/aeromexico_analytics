@@ -118,4 +118,26 @@
   .glow-aero {
     box-shadow: 0 0 60px -12px oklch(0.72 0.14 195 / 0.35);
   }
+  .glass-card {
+    @apply bg-card/40 backdrop-blur-md border border-border/50;
+    box-shadow:
+      0 0 0 1px oklch(0.72 0.14 195 / 0.06),
+      0 8px 32px -8px oklch(0 0 0 / 0.4);
+  }
+  .premium-border {
+    position: relative;
+  }
+  .premium-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, oklch(0.72 0.14 195 / 0.35), oklch(0.65 0.18 145 / 0.15), transparent 60%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
 }

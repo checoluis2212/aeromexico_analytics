@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { siteConfig, navPrimary, navResources, hubNavItems } from '@/lib/constants';
-import { Button } from '@/components/ui/button';
+import { siteConfig, navPrimary, navResources } from '@/lib/constants';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
@@ -98,7 +98,7 @@ export function Header() {
         {/* Actions */}
         <div className="hidden md:flex items-center gap-2 shrink-0">
           <Button variant="ghost" size="sm" asChild className="text-[13px] h-8 text-muted-foreground">
-            <Link href={hubNavItems[1].href}>Centro Analytics</Link>
+            <Link href="/command-center">Centro Analytics</Link>
           </Button>
           <Button size="sm" asChild className="h-8 text-[13px] bg-primary text-primary-foreground hover:bg-primary/90 glow-aero">
             <Link href="/request-center">Pedir a Sergio</Link>
@@ -113,10 +113,10 @@ export function Header() {
             <Link href="/request-center">Pedir a Sergio</Link>
           </Button>
           <Sheet>
-            <SheetTrigger>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Menu className="h-4 w-4" />
-              </Button>
+            <SheetTrigger
+              className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'h-8 w-8')}
+            >
+              <Menu className="h-4 w-4" />
             </SheetTrigger>
             <SheetContent side="right" className="w-72 bg-background/95 backdrop-blur-xl">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mt-6 mb-2">Menú</p>
@@ -145,7 +145,7 @@ export function Header() {
                 ))}
               </nav>
               <div className="my-4 h-px bg-border/50" />
-              <Link href="/command-center/executive" className="block px-3 py-2 text-sm text-primary">
+              <Link href="/command-center" className="block px-3 py-2 text-sm text-primary">
                 Centro Analytics →
               </Link>
             </SheetContent>

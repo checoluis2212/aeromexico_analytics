@@ -1,3 +1,4 @@
+import { assertSergioAdmin } from '@/lib/auth/guards';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { CommandCenterTopBar } from '@/components/command-center/top-bar';
@@ -12,6 +13,7 @@ export default async function PedidoDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  await assertSergioAdmin();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 

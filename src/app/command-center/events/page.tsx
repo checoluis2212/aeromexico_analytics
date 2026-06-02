@@ -3,6 +3,9 @@ import { CommandCenterTopBar } from '@/components/command-center/top-bar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, Layers, Tag, BarChart2, Database, PieChart } from 'lucide-react';
+import { eventHealthColor, eventHealthLabel, type EventHealthStatus } from '@/lib/analytics/event-health';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export const metadata = { title: 'Event Catalog' };
 
@@ -55,9 +58,24 @@ export default async function EventsCatalogPage() {
                 <CardHeader>
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <CardTitle className="text-base font-mono">{event.event_name}</CardTitle>
-                    {event.category && <Badge variant="outline">{event.category}</Badge>}
+                    <div className="flex items-center gap-2">
+                      {(event.health_status as EventHealthStatus) && (
+                        <Badge variant="outline" className={`text-[10px] ${eventHealthColor(event.health_status as EventHealthStatus)}`}>
+                          {eventHealthLabel(event.health_status as EventHealthStatus)}
+                        </Badge>
+                      )}
+                      {event.category && <Badge variant="outline">{event.category}</Badge>}
+                    </div>
                   </div>
                   <p className="text-sm text-muted-foreground">{event.description}</p>
+                  {event.last_validated_at && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Última validación {formatDistanceToNow(new Date(event.last_validated_at), { addSuffix: true, locale: es })}
+                    </p>
+                  )}
+                  {event.validation_notes && (
+                    <p className="text-xs text-signal mt-1">{event.validation_notes}</p>
+                  )}
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {params.length > 0 && (

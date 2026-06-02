@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "dev:clean": "rm -rf .next && next dev --turbopack",
-    "dev:reset": "lsof -ti:3000 | xargs kill -9 2>/dev/null || true; rm -rf .next && next dev --turbopack",
+    "dev": "lsof -ti:3000 | xargs kill -9 2>/dev/null || true; rm -rf .next && next dev",
+    "dev:turbo": "lsof -ti:3000 | xargs kill -9 2>/dev/null || true; rm -rf .next && next dev --turbopack",
+    "dev:clean": "rm -rf .next && next dev",
+    "dev:reset": "npm run dev",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint"

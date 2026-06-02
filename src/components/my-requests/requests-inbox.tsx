@@ -13,6 +13,7 @@ import {
 } from '@/lib/requests/filters';
 import { exportRequestsCsv } from '@/lib/requests/export-csv';
 import { Download } from 'lucide-react';
+import { RequestSummary } from '@/components/my-requests/request-summary';
 
 interface RequestsInboxProps {
   requests: MyRequestRow[];
@@ -40,6 +41,8 @@ export function RequestsInbox({
 
   return (
     <div className="space-y-5">
+      <RequestSummary requests={requests} />
+
       <RequestFilters
         filters={filters}
         onChange={setFilters}

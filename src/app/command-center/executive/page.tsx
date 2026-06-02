@@ -1,166 +1,259 @@
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { CommandCenterTopBar } from '@/components/command-center/top-bar';
-import { StatCard } from '@/components/command-center/stat-card';
+import { KpiSection } from '@/components/command-center/kpi-section';
+import { EventHealthPanel, ReportsPanel } from '@/components/command-center/executive-panels';
+import { BusinessMetricsPanel } from '@/components/command-center/business-metrics-panel';
+import { SergioQuickActions } from '@/components/command-center/sergio-quick-actions';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, ArrowUpRight, Zap } from 'lucide-react';
-import type { AnalyticsHealth, Report } from '@/types/command-center';
+import { computeEventHealth, stackStatusLabel, type EventHealthRow } from '@/lib/analytics/event-health';
+import {
+  buildExecutiveKpis,
+  countCriticalEvents,
+  opsStatusConfig,
+  startOfMonthIso,
+  type RequestOpsRow,
+} from '@/lib/analytics/executive-kpis';
+import { mapDeliveryStatusForUser } from '@/lib/integrations/external-sync';
+import { isSergioAdmin } from '@/lib/auth/access';
 
 export const metadata = { title: 'Resumen' };
 
 export default async function ExecutiveDashboardPage() {
   const supabase = await createClient();
+  const monthStart = startOfMonthIso();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = user
+    ? await supabase.from('profiles').select('role, acc_role, email').eq('id', user.id).single()
+    : { data: null };
+  const sergioView = isSergioAdmin(profile);
 
   const [
-    { count: openCount },
-    { count: doneCount },
-    { data: topReports },
+    { data: openRequests },
+    { count: doneThisMonth },
+    { data: reports },
+    { data: events },
+    { data: inProgress },
+    { data: healthRow },
+    { data: businessMetrics },
   ] = await Promise.all([
-    supabase.from('requests').select('*', { count: 'exact', head: true }).not('delivery_status', 'eq', 'done'),
-    supabase.from('requests').select('*', { count: 'exact', head: true }).eq('delivery_status', 'done'),
-    supabase.from('reports').select('*').order('popularity_score', { ascending: false }).limit(5),
+    supabase
+      .from('requests')
+      .select('id, priority, delivery_status, created_at, updated_at')
+      .not('delivery_status', 'in', '("done","cancelled")'),
+    supabase
+      .from('requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('delivery_status', 'done')
+      .gte('updated_at', monthStart),
+    supabase
+      .from('reports')
+      .select('id, title, refresh_frequency, dashboard_url, category, popularity_score')
+      .order('popularity_score', { ascending: false })
+      .limit(6),
+    supabase
+      .from('event_catalog')
+      .select('id, event_name, health_status, last_validated_at, validation_notes, category, is_active'),
+    supabase
+      .from('requests')
+      .select('id, title, delivery_status, company, updated_at')
+      .not('delivery_status', 'in', '("done","cancelled")')
+      .order('updated_at', { ascending: false })
+      .limit(5),
+    supabase.from('analytics_health').select('ga4_status, bigquery_status, gtm_status').order('recorded_at', { ascending: false }).limit(1).maybeSingle(),
+    supabase
+      .from('metrics')
+      .select('name, business_definition, type, examples')
+      .eq('type', 'kpi')
+      .limit(4),
   ]);
 
-  const { data: health } = await supabase.from('analytics_health').select('*').order('recorded_at', { ascending: false }).limit(1).single();
-  const { data: recentActivity } = await supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(8);
-  const h = health as AnalyticsHealth | null;
-  const healthScore = h?.health_score ?? 76;
+  const eventRows = (events ?? []) as EventHealthRow[];
+  const eventSummary = computeEventHealth(eventRows);
+  const critical = countCriticalEvents(eventRows);
+
+  const ga4Status = healthRow?.ga4_status ?? 'healthy';
+  const bqStatus = healthRow?.bigquery_status ?? 'healthy';
+  const gtmStatus = healthRow?.gtm_status ?? 'healthy';
+  const stackStatuses = [ga4Status, bqStatus, gtmStatus];
+  const stackHealthy = stackStatuses.every((s) => s === 'healthy');
+  const stackOk = stackStatuses.filter((s) => s === 'healthy').length;
+
+  const kpis = buildExecutiveKpis({
+    events: eventSummary,
+    stackHealthy,
+    stackOkCount: stackOk,
+    openRequests: (openRequests ?? []) as RequestOpsRow[],
+    reportCount: (reports ?? []).length,
+    criticalTotal: critical.total,
+    criticalHealthy: critical.healthy,
+    criticalLabel: critical.poolLabel,
+    deliveredThisMonth: doneThisMonth ?? 0,
+  });
+
+  const ops = opsStatusConfig(kpis.opsStatus);
+
+  const clientKpiItems = [
+    {
+      label: 'Confianza en datos',
+      value: `${kpis.client.dataTrust}%`,
+      change: 'Eventos validados en GA4/GTM',
+      icon: 'target' as const,
+    },
+    {
+      label: kpis.client.criticalLabel,
+      value: kpis.client.criticalValue,
+      change: 'Purchase, sign_up, checkout',
+      icon: 'checkCircle2' as const,
+      trend: 'up' as const,
+    },
+    {
+      label: 'Dashboards listos',
+      value: kpis.client.reportsReady,
+      change: 'Looker · self-service',
+      icon: 'barChart3' as const,
+    },
+    {
+      label: 'Pedidos en pipeline',
+      value: kpis.client.pipelineOpen,
+      change: 'Solicitudes abiertas al equipo',
+      icon: 'inbox' as const,
+    },
+  ];
+
+  const sergioKpiItems = [
+    {
+      label: 'Urgentes P0/P1',
+      value: kpis.sergio.urgent,
+      change: 'Atender primero',
+      icon: 'shieldAlert' as const,
+      trend: kpis.sergio.urgent > 0 ? ('down' as const) : ('neutral' as const),
+    },
+    {
+      label: 'Cola total',
+      value: kpis.sergio.queueTotal,
+      change: 'Pedidos abiertos',
+      icon: 'inbox' as const,
+    },
+    {
+      label: 'Sin movimiento +7d',
+      value: kpis.sergio.stale,
+      change: 'Requieren follow-up',
+      icon: 'clock' as const,
+      trend: kpis.sergio.stale > 0 ? ('down' as const) : ('up' as const),
+    },
+    {
+      label: 'En desarrollo / QA',
+      value: kpis.sergio.inDelivery,
+      change: `${kpis.sergio.deliveredThisMonth} entregados este mes`,
+      icon: 'activity' as const,
+    },
+  ];
 
   return (
     <>
       <CommandCenterTopBar
-        title="Así vamos"
-        subtitle="Un vistazo rápido — sin jerga técnica"
+        title="Resumen Analytics"
+        subtitle="KPIs para el negocio y operación del equipo"
       />
 
-      <div className="p-5 space-y-6">
-        <div className="relative overflow-hidden rounded-xl border border-border/50 bg-card/30 p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+      <div className="p-5 space-y-5 max-w-6xl">
+        <div className="rounded-xl border border-border/50 glass-card p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <p className="text-xs text-muted-foreground">Salud general de Analytics</p>
-              <div className="flex items-end gap-2 mt-1">
-                <span className="text-5xl font-bold tabular-nums">{healthScore}</span>
-                <span className="text-lg text-muted-foreground mb-1">de 100</span>
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="outline" className={`text-xs ${ops.className}`}>
+                  {kpis.opsLabel}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  Stack {stackOk}/3 · {eventSummary.coveragePercent}% eventos OK
+                </span>
               </div>
-              <p className="text-sm text-muted-foreground mt-2 max-w-md">
-                {healthScore >= 75
-                  ? 'Vamos bien. Los datos están llegando y el equipo responde a tiempo.'
-                  : healthScore >= 50
-                    ? 'Hay áreas por mejorar, pero nada crítico. Revisa los reportes más usados abajo.'
-                    : 'Necesitamos atención en algunas áreas. Escríbenos si algo te bloquea.'}
-              </p>
+              <p className="text-sm text-muted-foreground max-w-lg">{kpis.opsDetail}</p>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="flex gap-2 shrink-0">
               {[
-                { label: 'GA4', status: h?.ga4_status ?? 'healthy', ok: 'Funcionando' },
-                { label: 'BigQuery', status: h?.bigquery_status ?? 'healthy', ok: 'Funcionando' },
-                { label: 'GTM', status: h?.gtm_status ?? 'healthy', ok: 'Funcionando' },
+                { label: 'GA4', status: ga4Status },
+                { label: 'GTM', status: gtmStatus },
+                { label: 'BigQuery', status: bqStatus },
               ].map((s) => (
-                <div key={s.label} className="text-center p-2.5 rounded-lg bg-background/60 border border-border/30">
-                  <p className="text-[11px] text-muted-foreground">{s.label}</p>
-                  <Badge variant="outline" className="mt-1 text-[10px] border-radar/40 text-radar">
-                    {s.status === 'healthy' ? s.ok : s.status}
-                  </Badge>
+                <div key={s.label} className="text-center px-3 py-2 rounded-lg bg-secondary/30 border border-border/30 min-w-[72px]">
+                  <p className="text-[10px] text-muted-foreground">{s.label}</p>
+                  <p className={`text-[11px] font-medium mt-0.5 ${s.status === 'healthy' ? 'text-radar' : 'text-signal'}`}>
+                    {stackStatusLabel(s.status)}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard label="Pendientes" value={openCount ?? 12} icon="inbox" delay={0} />
-          <StatCard label="Entregados este trimestre" value={doneCount ?? 34} icon="checkCircle2" trend="up" change="Gracias por la paciencia" delay={0.05} />
-          <StatCard label="Tiempo de respuesta" value="~4 días" icon="clock" trend="down" change="Mejorando" delay={0.1} />
-          <StatCard label="Cobertura de medición" value={`${h?.tracking_coverage ?? 84.5}%`} icon="target" delay={0.15} />
-          <StatCard label="Horas que te ahorramos" value={`${(h?.hours_saved ?? 1240).toLocaleString()}h`} icon="trendUp" trend="up" change="Este año" delay={0.2} />
-          <StatCard label="Valor estimado" value={`$${((h?.roi_estimate ?? 485000) / 1000).toFixed(0)}K`} icon="dollarSign" trend="up" change="Para el negocio" delay={0.25} />
-          <StatCard label="Reportes disponibles" value={(topReports ?? []).length > 0 ? String((topReports ?? []).length) : '6+'} icon="barChart3" delay={0.3} />
+        <KpiSection
+          title="Para el cliente"
+          subtitle="¿Puedo confiar en los datos y ver avance de mis pedidos?"
+          kpis={clientKpiItems}
+          accent="client"
+        />
+
+        {sergioView && (
+          <KpiSection
+            title="Para Sergio"
+            subtitle="Tu radar diario — cola, urgencias y entregas"
+            kpis={sergioKpiItems}
+            accent="sergio"
+          />
+        )}
+
+        {sergioView && kpis.sergio.eventAlerts > 0 && (
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-signal/30 bg-signal/5 text-sm">
+            <span className="text-signal font-medium">{kpis.sergio.eventAlerts} evento(s)</span>
+            <span className="text-muted-foreground">pendientes de validación — revisa el catálogo antes del próximo deploy.</span>
+          </div>
+        )}
+
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <EventHealthPanel summary={eventSummary} />
+          <ReportsPanel reports={reports ?? []} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Top Reports */}
-          <Card className="bg-card/50 border-border/60">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-primary" />
-                Top Reportes — los que más usan tus colegas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {(topReports as Report[] ?? []).map((r, i) => (
-                <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/20 hover:bg-secondary/40 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-primary w-5">{i + 1}</span>
-                    <div>
-                      <p className="text-sm font-medium">{r.title}</p>
-                      <p className="text-xs text-muted-foreground">{r.view_count.toLocaleString()} views</p>
-                    </div>
-                  </div>
-                  <Badge variant="secondary" className="text-[10px]">{r.popularity_score}%</Badge>
-                </div>
-              ))}
-              {(!topReports || topReports.length === 0) && (
-                <p className="text-sm text-muted-foreground py-4 text-center">Ejecuta migración 004 para datos seed.</p>
-              )}
-            </CardContent>
-          </Card>
+        <BusinessMetricsPanel metrics={businessMetrics ?? []} />
 
-          {/* Próximas iniciativas */}
-          <Card className="bg-card/50 border-border/60">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary" />
-                Lo que viene en camino
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {[
-                { title: 'Checkout funnel — app móvil', status: 'Development', pts: 8 },
-                { title: 'BigQuery mart — revenue attribution', status: 'Requirements', pts: 13 },
-                { title: 'Consent Mode v2 — validación', status: 'Analytics QA', pts: 5 },
-                { title: 'Report marketplace — self-service', status: 'Ready for Release', pts: 3 },
-              ].map((item) => (
-                <div key={item.title} className="flex items-center justify-between p-3 rounded-lg border border-border/40">
-                  <div>
-                    <p className="text-sm font-medium">{item.title}</p>
-                    <p className="text-xs text-muted-foreground">{item.pts} story points</p>
-                  </div>
-                  <Badge variant="outline" className="text-[10px]">{item.status}</Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Activity */}
-        <Card className="bg-card/50 border-border/60">
-          <CardHeader>
-            <CardTitle className="text-base">Últimos movimientos</CardTitle>
+        <Card className="glass-card border-border/60">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">En qué estamos trabajando</CardTitle>
+            <p className="text-xs text-muted-foreground">Pedidos activos — visible para stakeholders</p>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {(recentActivity ?? []).length > 0 ? (
-                recentActivity!.map((a) => (
-                  <div key={a.id} className="flex items-center gap-3 text-sm py-2 border-b border-border/30 last:border-0">
-                    <ArrowUpRight className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span>{a.action}</span>
-                    <span className="text-xs text-muted-foreground ml-auto">{a.entity_type}</span>
+          <CardContent className="space-y-2">
+            {(inProgress ?? []).length > 0 ? (
+              (inProgress ?? []).map((r) => (
+                <Link
+                  key={r.id}
+                  href={sergioView ? `/command-center/pedidos/${r.id}` : '/command-center/board'}
+                  className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border/40 hover:border-primary/30 hover:bg-secondary/20 transition-colors"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium line-clamp-1">{r.title}</p>
+                    {r.company && (
+                      <p className="text-[11px] text-muted-foreground">{r.company}</p>
+                    )}
                   </div>
-                ))
-              ) : (
-                [
-                  'Dashboard ROAS publicado en Report Marketplace',
-                  'Evento purchase_validated completó Analytics QA',
-                  'Sprint 12 — 78% capacity utilizada',
-                  'Nueva solicitud: Funnel checkout mobile',
-                ].map((a) => (
-                  <div key={a} className="flex items-center gap-3 text-sm py-2 border-b border-border/30 last:border-0">
-                    <ArrowUpRight className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span>{a}</span>
-                  </div>
-                ))
-              )}
-            </div>
+                  <Badge variant="outline" className="text-[10px] shrink-0">
+                    {mapDeliveryStatusForUser(r.delivery_status ?? 'backlog')}
+                  </Badge>
+                </Link>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground py-6 text-center">
+                No hay pedidos activos.{' '}
+                <Link href="/request-center" className="text-primary hover:underline">
+                  Pedir a Sergio
+                </Link>
+              </p>
+            )}
+            {sergioView && <SergioQuickActions />}
           </CardContent>
         </Card>
       </div>

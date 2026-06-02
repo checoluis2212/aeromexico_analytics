@@ -13,6 +13,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Section, FeatureCard } from '@/components/layout/section';
+import { FadeIn, StaggerGrid, StaggerItem } from '@/components/ui/fade-in';
+import { HomeStats } from '@/components/home/home-stats';
+import { AvailabilitySemaphore } from '@/components/availability/availability-semaphore';
+import { getSergioAvailability } from '@/lib/availability';
 import { services, principles, analyticsStack, siteConfig } from '@/lib/constants';
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -24,14 +28,16 @@ const iconMap: Record<string, React.ReactNode> = {
   Sparkles: <Sparkles className="h-5 w-5" />,
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const availability = await getSergioAvailability();
+
   return (
     <>
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 grid-pattern opacity-15" />
         <div className="absolute top-1/3 right-0 w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl" />
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 py-20 sm:py-28">
-          <div className="max-w-2xl">
+          <FadeIn className="max-w-2xl">
             <Badge variant="outline" className="mb-5 border-primary/30 text-primary gap-1.5">
               <Plane className="h-3 w-3" />
               {siteConfig.tagline}
@@ -42,8 +48,11 @@ export default function HomePage() {
             </h1>
             <p className="mt-5 text-lg text-muted-foreground leading-relaxed">
               Soy <strong className="text-foreground font-medium">Sergio Burgos</strong>, {siteConfig.role} en {siteConfig.org}.
-              Dashboard, métrica de growth, evento GTM, embudo o duda de datos — cuéntame en 2 minutos.
+              Dashboard, métricas, evento GTM, embudo o duda de datos — cuéntame en 2 minutos.
             </p>
+            <div className="mt-6">
+              <AvailabilitySemaphore availability={availability} compact className="max-w-sm" />
+            </div>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button size="lg" asChild className="glow-aero">
                 <Link href="/request-center">
@@ -55,9 +64,11 @@ export default function HomePage() {
                 <Link href="/working-with-me">Cómo trabajamos</Link>
               </Button>
             </div>
-          </div>
+          </FadeIn>
 
-          <div className="mt-12 flex flex-wrap gap-2">
+          <HomeStats />
+
+          <FadeIn delay={0.15} className="mt-12 flex flex-wrap gap-2">
             {analyticsStack.map((tool) => (
               <span
                 key={tool.short}
@@ -69,24 +80,25 @@ export default function HomePage() {
             <span className="text-xs px-3 py-1.5 rounded-full border border-primary/25 bg-primary/5 text-primary">
               Data layers AM
             </span>
-          </div>
+          </FadeIn>
         </div>
       </section>
 
       <Section
         title="En qué te ayudo"
-        description="Growth, analytics y métricas en Aeroméxico — sin perderse en la herramienta."
+        description="Analytics y métricas en Aeroméxico — apoyo a Growth, Marketing y más equipos."
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <StaggerGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {services.map((service) => (
-            <FeatureCard
-              key={service.title}
-              title={service.title}
-              description={service.description}
-              icon={iconMap[service.icon]}
-            />
+            <StaggerItem key={service.title}>
+              <FeatureCard
+                title={service.title}
+                description={service.description}
+                icon={iconMap[service.icon]}
+              />
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerGrid>
       </Section>
 
       <Section

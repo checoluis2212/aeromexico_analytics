@@ -89,7 +89,25 @@ export const MATURITY_DIMENSIONS = [
   'Experimentation', 'Self-Service', 'Documentation',
 ];
 
-/** Navegación principal — lo que un manager usa cada día */
+/** Panel Sergio — operación diaria */
+export const SERGIO_NAV_PRIMARY = [
+  { href: '/command-center/admin', label: 'Mi panel', hint: 'Cola, semáforo, urgentes', icon: 'Home' },
+  { href: '/command-center/pedidos', label: 'Bandeja', hint: 'Aceptar y gestionar', icon: 'Inbox' },
+  { href: '/command-center/board', label: 'Tablero', hint: 'Avance por estado', icon: 'Columns3' },
+  { href: '/command-center/executive', label: 'KPIs', hint: 'Negocio + operación', icon: 'BarChart3' },
+  { href: '/command-center/events', label: 'Eventos', hint: 'Salud GA4/GTM', icon: 'Zap' },
+  { href: '/command-center/copilot', label: 'Copilot', hint: 'Asistente IA', icon: 'MessageCircle' },
+];
+
+/** Stakeholders — solo consulta */
+export const STAKEHOLDER_NAV_PRIMARY = [
+  { href: '/command-center/executive', label: 'Resumen', hint: 'KPIs y confianza en datos', icon: 'Home' },
+  { href: '/command-center/reports', label: 'Reportes', hint: 'Dashboards publicados', icon: 'BarChart3' },
+  { href: '/command-center/board', label: 'Avance', hint: 'En qué estamos', icon: 'Columns3' },
+  { href: '/command-center/copilot', label: 'Pregúntale', hint: 'Asistente con IA', icon: 'MessageCircle' },
+];
+
+/** @deprecated Usar SERGIO_NAV o STAKEHOLDER_NAV */
 export const ACC_NAV_PRIMARY = [
   { href: '/command-center/executive', label: 'Resumen', hint: 'Cómo vamos', icon: 'Home' },
   { href: '/command-center/pedidos', label: 'Pedidos', hint: 'Filtra por usuario', icon: 'Inbox' },

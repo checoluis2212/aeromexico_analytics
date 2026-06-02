@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Roboto, Roboto_Mono } from 'next/font/google';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
+import { SiteChrome } from '@/components/layout/site-chrome';
 import { Toaster } from '@/components/ui/sonner';
 import { siteConfig } from '@/lib/constants';
 import './globals.css';
@@ -81,9 +81,13 @@ gtag('js',new Date());gtag('config','${gaId}');`,
             />
           </noscript>
         )}
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <Suspense
+          fallback={
+            <main className="flex-1">{children}</main>
+          }
+        >
+          <SiteChrome>{children}</SiteChrome>
+        </Suspense>
         <Toaster richColors position="top-right" />
       </body>
     </html>

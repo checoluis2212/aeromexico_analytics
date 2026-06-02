@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
-import { notifyNewRequest } from '@/lib/notify-request';
+import { notifyNewRequest, notifyInternalOnNewRequest } from '@/lib/notify-request';
 import { pushRequestToExternal, saveExternalRef } from '@/lib/integrations/external-sync';
 import { z } from 'zod';
 
@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       priority: data.priority ?? 'p2_medium',
       status: 'submitted' as const,
       delivery_status: 'backlog' as const,
+      sergio_decision: 'pending' as const,
     };
 
     const supabase = createAdminClient();
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
     await notifyNewRequest(inserted);
+    await notifyInternalOnNewRequest(inserted);
 
     const external = await pushRequestToExternal({
       id: inserted.id,

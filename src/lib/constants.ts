@@ -1,10 +1,10 @@
 export const siteConfig = {
   name: 'Sergio Burgos',
-  tagline: 'Growth & Analytics Metrics · Aeroméxico',
-  role: 'Growth & Analytics Metrics Specialist',
+  tagline: 'Analytics & Métricas · Aeroméxico',
+  role: 'Analytics Metrics Specialist',
   org: 'Aeroméxico',
   description:
-    'Pídeme lo que quieras: dashboards, métricas de growth, eventos, embudos, atribución o dudas de datos en Aeroméxico.',
+    'Te ayudo con analytics y métricas: dashboards, eventos, embudos y datos para Growth, Marketing, Producto y más equipos en Aeroméxico.',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://workingwithsergio.com',
   author: 'Sergio Burgos',
   email: 'luissergio.mkt@gmail.com',
@@ -68,7 +68,7 @@ export const requestPriorities = [
 
 /** Tipos de pedido — lenguaje de negocio */
 export const requestTypes = [
-  { value: 'dashboard', label: 'Dashboard o reporte', description: 'KPIs, métricas de growth o reporte para tu equipo' },
+  { value: 'dashboard', label: 'Dashboard o reporte', description: 'KPIs y reportes para tu equipo — incluyendo apoyo a Growth' },
   { value: 'tracking', label: 'Medir algo nuevo', description: 'Evento, conversión, tag GTM o cambio en web/app' },
   { value: 'funnel', label: 'Embudo o conversión', description: 'Checkout, booking, app — dónde se pierden usuarios' },
   { value: 'qa', label: 'Revisar métricas', description: 'Los números no cuadran o hay dudas en GA4/BQ' },
@@ -78,8 +78,8 @@ export const requestTypes = [
 
 export const services = [
   {
-    title: 'Growth & métricas',
-    description: 'KPIs de conversión, adquisición, retención y revenue. Dashboards que responden preguntas de negocio reales.',
+    title: 'Apoyo a Growth',
+    description: 'Ayudo al equipo de Growth con KPIs, conversión, adquisición y dashboards — yo no ejecuto growth, les doy la medición confiable.',
     icon: 'Target',
   },
   {
@@ -108,8 +108,8 @@ export const services = [
     icon: 'ShieldCheck',
   },
   {
-    title: 'Mentoria al intern',
-    description: 'Pair sessions, revisión de código GTM/dataLayer, documentación y handoff para que el intern crezca con autonomía.',
+    title: 'Mentoria al equipo',
+    description: 'Sesiones en equipo, revisión de código GTM/dataLayer, documentación y handoff para que el equipo crezca con autonomía.',
     icon: 'Sparkles',
   },
 ];
@@ -125,11 +125,11 @@ export const principles = [
   },
   {
     title: 'Documentar mientras construimos',
-    description: 'Catálogo de eventos, playbooks y guías actualizados para que el intern y el equipo no dependan de memoria.',
+    description: 'Catálogo de eventos, playbooks y guías actualizados para que el equipo no dependa de memoria.',
   },
   {
     title: 'Aprender haciendo',
-    description: 'El intern no solo observa: implementa con revisión, gana autonomía y entiende el porqué de cada decisión.',
+    description: 'El equipo no solo observa: implementa con revisión, gana autonomía y entiende el porqué de cada decisión.',
   },
 ];
 

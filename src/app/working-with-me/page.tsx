@@ -2,12 +2,14 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { Section } from '@/components/layout/section';
 import { Button } from '@/components/ui/button';
+import { AvailabilitySemaphore } from '@/components/availability/availability-semaphore';
+import { getSergioAvailability } from '@/lib/availability';
 import { slas, siteConfig } from '@/lib/constants';
 import { ArrowRight, MessageSquare, Calendar, Rocket, Clock } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Cómo trabajo',
-  description: 'Pide lo que quieras a Sergio Burgos — Growth & Analytics Metrics en Aeroméxico.',
+  description: 'Pide lo que quieras a Sergio Burgos — Analytics & Métricas en Aeroméxico.',
 };
 
 const steps = [
@@ -19,12 +21,12 @@ const steps = [
   {
     icon: Calendar,
     title: 'Te respondo con un plan',
-    desc: 'Fecha, pasos y si hace falta una sesión para revisar el data layer juntos.',
+    desc: 'Fecha, pasos y, si hace falta, una sesión con tu equipo para revisar el data layer.',
   },
   {
     icon: Rocket,
-    title: 'Lo hacemos en pareja',
-    desc: 'Tú implementas, yo reviso. Así aprendes GA4, GTM y BigQuery con casos reales de Aeroméxico.',
+    title: 'Lo resolvemos en equipo',
+    desc: 'Tu equipo implementa, yo reviso y valido. Así avanzan con GA4, GTM y BigQuery en casos reales de Aeroméxico.',
   },
 ];
 
@@ -61,7 +63,9 @@ const priorityStyle: Record<string, string> = {
   'Sin prisa': 'border-border text-muted-foreground bg-secondary/30',
 };
 
-export default function WorkingWithMePage() {
+export default async function WorkingWithMePage() {
+  const availability = await getSergioAvailability();
+
   return (
     <>
       {/* Hero */}
@@ -75,9 +79,12 @@ export default function WorkingWithMePage() {
             <span className="gradient-text">Sin complicaciones.</span>
           </h1>
           <p className="mt-4 text-base text-muted-foreground leading-relaxed max-w-xl mx-auto">
-            Pídeme lo que necesites en analytics y growth en {siteConfig.org} —
-            sin tickets eternos ni jerga innecesaria.
+            Pídeme lo que necesites en analytics y métricas en {siteConfig.org} —
+            apoyo a Growth, Marketing, Producto y más — sin tickets eternos ni jerga innecesaria.
           </p>
+          <div className="mt-6 flex justify-center">
+            <AvailabilitySemaphore availability={availability} className="max-w-md w-full" />
+          </div>
           <Button size="lg" asChild className="mt-8 glow-aero">
             <Link href="/request-center">
               Pedir a Sergio

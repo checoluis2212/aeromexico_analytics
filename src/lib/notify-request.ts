@@ -26,7 +26,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 function portalUrl(id: string) {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
-  return `${base}/command-center/board`;
+  return `${base}/command-center/pedidos/${id}`;
 }
 
 function isTeamsWebhook(url: string) {
@@ -60,7 +60,7 @@ export async function notifyNewRequest(req: RequestNotification) {
             ],
           },
         ],
-        potentialAction: [{ '@type': 'OpenUri', name: 'Ver tablero', targets: [{ os: 'default', uri: link }] }],
+        potentialAction: [{ '@type': 'OpenUri', name: 'Aceptar o rechazar', targets: [{ os: 'default', uri: link }] }],
       }
     : {
         text: `Nueva petición · ${req.title}`,
@@ -87,7 +87,7 @@ export async function notifyNewRequest(req: RequestNotification) {
             elements: [
               {
                 type: 'button',
-                text: { type: 'plain_text', text: 'Ver tablero' },
+                text: { type: 'plain_text', text: 'Revisar y aceptar' },
                 url: link,
               },
             ],
@@ -103,5 +103,29 @@ export async function notifyNewRequest(req: RequestNotification) {
     });
   } catch (err) {
     console.error('Webhook notification failed:', err);
+  }
+}
+
+export async function notifyInternalOnNewRequest(req: RequestNotification) {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return;
+
+  const { createAdminClient } = await import('@/lib/supabase/admin');
+  const admin = createAdminClient();
+  const priority = PRIORITY_LABELS[req.priority] ?? req.priority;
+  const link = portalUrl(req.id);
+
+  const { data: internals } = await admin
+    .from('profiles')
+    .select('id')
+    .in('role', ['admin', 'consultant']);
+
+  for (const profile of internals ?? []) {
+    await admin.from('notifications').insert({
+      user_id: profile.id,
+      type: 'approval',
+      title: `Nuevo pedido — ${req.title}`,
+      message: `${req.requester_name} · ${priority} · Pendiente de tu respuesta`,
+      link,
+    });
   }
 }

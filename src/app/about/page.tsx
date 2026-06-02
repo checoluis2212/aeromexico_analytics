@@ -1,26 +1,78 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
 import { PageHeader } from '@/components/layout/page-header';
 import { Section, FeatureCard } from '@/components/layout/section';
-import { principles, analyticsStack, siteConfig } from '@/lib/constants';
-import { Compass, Users, Award, GraduationCap, Plane } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { services, siteConfig } from '@/lib/constants';
+import {
+  ArrowRight,
+  BarChart3,
+  Code2,
+  Database,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  Users,
+  Plane,
+  MessageCircle,
+} from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Sobre mí',
-  description: 'Sergio Burgos — Growth & Analytics Metrics Specialist en Aeroméxico.',
+  description: 'Sergio Burgos — Analytics Metrics Specialist en Aeroméxico. Apoyo a Growth y otros equipos con datos, dashboards y medición.',
 };
 
-const collaborationSteps = [
-  { title: 'Entendemos el contexto', description: 'Qué equipo lo pide, qué decisión de negocio hay detrás y qué propiedad GA4 o data layer toca.' },
-  { title: 'Plan claro', description: 'Eventos, tags, queries o dashboard — con fecha y pasos que puedas seguir.' },
-  { title: 'Implementamos juntos', description: 'Tú ejecutas con mi revisión: GTM Preview, DebugView, queries en BQ, Looker conectado.' },
-  { title: 'Validamos y documentamos', description: 'QA, catálogo de eventos actualizado y handoff para que no quede dependencia.' },
+const iconMap: Record<string, React.ReactNode> = {
+  Target: <Target className="h-5 w-5" />,
+  BarChart3: <BarChart3 className="h-5 w-5" />,
+  Code2: <Code2 className="h-5 w-5" />,
+  Database: <Database className="h-5 w-5" />,
+  ShieldCheck: <ShieldCheck className="h-5 w-5" />,
+  Sparkles: <Sparkles className="h-5 w-5" />,
+};
+
+const whoAmI = [
+  {
+    title: 'Tu punto de contacto en analytics',
+    description:
+      'Soy el especialista al que puedes acudir cuando necesitas medir algo nuevo, entender un número o armar un reporte — sin pasar por procesos complicados.',
+    icon: <MessageCircle className="h-5 w-5" />,
+  },
+  {
+    title: 'Conozco el contexto Aeroméxico',
+    description:
+      'Trabajo sobre los data layers de web, app, e-commerce y marketing del grupo. Lo que implementamos respeta la gobernanza y el catálogo de eventos corporativo.',
+    icon: <Plane className="h-5 w-5" />,
+  },
+  {
+    title: 'Apoyo al equipo, no lo reemplazo',
+    description:
+      'Mi meta es que tu equipo gane autonomía: explico el porqué, revisamos en equipo en GTM y GA4, y dejamos todo documentado para que no dependan de mí para siempre.',
+    icon: <Users className="h-5 w-5" />,
+  },
 ];
 
-const values = [
-  { title: 'Claridad', description: 'Te explico el porqué, no solo el cómo.', icon: <Compass className="h-5 w-5" /> },
-  { title: 'Trabajo en pareja', description: 'No hago todo a puerta cerrada — aprendes mientras avanzamos.', icon: <Users className="h-5 w-5" /> },
-  { title: 'Estándares Aeroméxico', description: 'Naming, data layers y gobernanza alineados al programa corporativo.', icon: <Award className="h-5 w-5" /> },
-  { title: 'Tu crecimiento', description: 'El objetivo es que cada mes necesites menos hand-holding.', icon: <GraduationCap className="h-5 w-5" /> },
+const helpByRole = [
+  {
+    area: 'Equipo de Growth',
+    examples: 'KPIs de conversión y adquisición, embudos, atribución, ROAS — la medición que necesitan para decidir.',
+  },
+  {
+    area: 'Marketing y Digital',
+    examples: 'ROAS por campaña, atribución, embudos de adquisición, conversiones por canal.',
+  },
+  {
+    area: 'E-commerce y Revenue',
+    examples: 'Checkout, abandono de carrito, revenue, purchase events, comparación pre/post deploy.',
+  },
+  {
+    area: 'App móvil y Producto',
+    examples: 'Eventos Firebase/GA4, adopción de features, funnels in-app, retención.',
+  },
+  {
+    area: 'Operaciones y otros equipos',
+    examples: 'Dudas sobre métricas, validación de datos, reportes ad hoc en Looker o BigQuery.',
+  },
 ];
 
 export default function AboutPage() {
@@ -29,68 +81,86 @@ export default function AboutPage() {
       <PageHeader
         badge={siteConfig.tagline}
         title="Hola, soy Sergio Burgos"
-        description="Growth & Analytics Metrics Specialist en Aeroméxico. Métricas de conversión, adquisición, revenue, GA4, GTM, BigQuery y Looker Studio — sobre los data layers del negocio aéreo."
+        description="Analytics Metrics Specialist en Aeroméxico. Ayudo a Growth, Marketing, Producto y más equipos con datos confiables, dashboards útiles y medición que sirva para decidir."
       />
 
-      <Section title="Mi stack">
-        <div className="flex flex-wrap gap-2 mb-6">
-          {analyticsStack.map((t) => (
-            <span key={t.short} className="text-sm px-4 py-2 rounded-lg border border-border/50 bg-card/30">
-              {t.name}
-            </span>
-          ))}
-        </div>
-        <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
-          Trabajo sobre los <strong className="text-foreground font-medium">data layers específicos de Aeroméxico</strong> —
-          web, app, e-commerce, marketing. Todo lo que medimos sale de ahí y se valida en GA4, se exporta a BigQuery
-          y se presenta en Looker Studio para los equipos que toman decisiones.
-        </p>
-      </Section>
-
-      <Section title="En qué creo">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {principles.map((p) => (
-            <FeatureCard key={p.title} title={p.title} description={p.description} />
-          ))}
+      <Section>
+        <div className="max-w-3xl space-y-4 text-muted-foreground leading-relaxed">
+          <p className="text-base text-foreground">
+            Soy especialista en <strong className="font-medium">analytics y métricas</strong> en Aeroméxico.
+            No hago growth — <strong className="font-medium">ayudo al equipo de Growth</strong> (y a Marketing, E-commerce, App y otros)
+            con GA4, GTM, BigQuery y Looker: medición, dashboards y validación de datos.
+          </p>
+          <p>
+            Si eres de Marketing, Producto, E-commerce, Digital u otra área y te preguntas
+            <em> “¿este número es correcto?”</em>, <em>“¿cómo medimos esto?”</em> o{' '}
+            <em>“¿me armas un dashboard?”</em> — ese es exactamente mi trabajo. No necesitas ser experto
+            en analytics para pedirme ayuda.
+          </p>
         </div>
       </Section>
 
-      <Section
-        title="Cómo trabajamos"
-        description="Pensado para un intern que quiere aprender rápido sin ahogarse."
-        className="bg-card/10 border-y border-border/30"
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
-          {collaborationSteps.map((step, i) => (
-            <div key={step.title} className="p-4 rounded-xl border border-border/40 bg-card/20">
-              <span className="text-xs text-primary font-mono">0{i + 1}</span>
-              <h3 className="font-semibold text-sm mt-1">{step.title}</h3>
-              <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{step.description}</p>
+      <Section title="Quién soy en el día a día" className="bg-card/10 border-y border-border/30">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl">
+          {whoAmI.map((item) => (
+            <div key={item.title} className="p-5 rounded-xl border border-border/40 bg-card/30">
+              <div className="text-primary mb-3">{item.icon}</div>
+              <h3 className="font-semibold text-sm">{item.title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{item.description}</p>
             </div>
           ))}
         </div>
       </Section>
 
-      <Section title="Lo que puedes esperar de mí">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
-          {values.map((v) => (
-            <div key={v.title} className="flex gap-3 p-4 rounded-xl border border-border/40">
-              <div className="text-primary shrink-0">{v.icon}</div>
-              <div>
-                <h3 className="font-semibold text-sm">{v.title}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{v.description}</p>
-              </div>
+      <Section
+        title="Cómo puedo ayudarte"
+        description="Cosas concretas que puedes pedirme — en lenguaje de negocio, no técnico."
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {services.filter((s) => s.title !== 'Mentoria al equipo').map((service) => (
+            <FeatureCard
+              key={service.title}
+              title={service.title}
+              description={service.description}
+              icon={iconMap[service.icon]}
+            />
+          ))}
+        </div>
+      </Section>
+
+      <Section
+        title="Por área en Aeroméxico"
+        description="Ejemplos de lo que suelen pedirme los equipos."
+        className="bg-card/10 border-y border-border/30"
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl">
+          {helpByRole.map((row) => (
+            <div key={row.area} className="p-4 rounded-xl border border-border/40 bg-card/20">
+              <h3 className="font-semibold text-sm text-primary">{row.area}</h3>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{row.examples}</p>
             </div>
           ))}
         </div>
       </Section>
 
       <Section className="text-center pb-16">
-        <Plane className="h-8 w-8 text-primary/40 mx-auto mb-3" />
-        <p className="text-sm text-muted-foreground max-w-md mx-auto">
-          Este portal es nuestro espacio de trabajo — solicitudes, playbooks, catálogo de eventos y el Command Center
-          para cuando el equipo crezca.
+        <Plane className="h-8 w-8 text-primary/50 mx-auto mb-4" />
+        <h2 className="text-xl font-semibold">¿Listo para pedir algo?</h2>
+        <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+          Cuéntame qué necesitas en 2 minutos. Te respondo yo, con fecha y plan claro.
+          También puedes ver el estado de tus pedidos cuando tengas cuenta.
         </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Button size="lg" asChild className="glow-aero">
+            <Link href="/request-center">
+              Pedir a Sergio
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button size="lg" variant="outline" asChild>
+            <Link href="/working-with-me">Ver cómo funciona</Link>
+          </Button>
+        </div>
       </Section>
     </>
   );

@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -10,12 +12,14 @@ import {
   type ClientArchiveEntry,
 } from '@/lib/delivery/client-archive';
 import { DELIVERY_KIND_LABELS } from '@/lib/delivery/types';
+import { useTrackEvent } from '@/components/analytics/analytics-context';
 
 type Props = {
   entries: ClientArchiveEntry[];
 };
 
 export function ClientDeliveriesArchive({ entries }: Props) {
+  const track = useTrackEvent();
   const groups = groupArchiveByRequest(entries);
 
   if (entries.length === 0) {
@@ -87,6 +91,12 @@ export function ClientDeliveriesArchive({ entries }: Props) {
                       href={d.url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() =>
+                        track('resource_download', {
+                          delivery_type: d.kind,
+                          request_id: request.id,
+                        })
+                      }
                       className="inline-flex items-center gap-1 text-xs text-primary mt-1.5 hover:underline"
                     >
                       {d.kind === 'gtm_debug_video' ? 'Ver video' : 'Abrir dashboard'}

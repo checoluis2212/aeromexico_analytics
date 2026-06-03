@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { Loader2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ACCESS_PORTAL_COPY } from '@/lib/access-requests/constants';
 import { accessRequestInputSchema, type AccessRequestInput } from '@/lib/access-requests/schema';
+import { useTrackEvent } from '@/components/analytics/analytics-context';
 
 type Props = {
   onSuccess: (email: string) => void;
@@ -25,6 +26,8 @@ const emptyForm: AccessRequestInput = {
 };
 
 export function AccessRequestForm({ onSuccess, initialEmail = '' }: Props) {
+  const track = useTrackEvent();
+  const formStarted = useRef(false);
   const [form, setForm] = useState<AccessRequestInput>({
     ...emptyForm,
     email: initialEmail,
@@ -54,6 +57,7 @@ export function AccessRequestForm({ onSuccess, initialEmail = '' }: Props) {
         if (key && !errors[key]) errors[key] = issue.message;
       }
       setFieldErrors(errors);
+      track('access_request_error', { error_code: 'validation', field: Object.keys(errors)[0] ?? 'unknown' });
       return;
     }
 
@@ -72,12 +76,22 @@ export function AccessRequestForm({ onSuccess, initialEmail = '' }: Props) {
           return;
         }
         setSubmitError(json.error ?? ACCESS_PORTAL_COPY.submitFailed);
+        track('access_request_error', {
+          error_code: json.code ?? `http_${res.status}`,
+          field: null,
+        });
         return;
       }
 
+      track('generate_lead', {
+        lead_type: 'platform_access',
+        department: parsed.data.department,
+        company: parsed.data.company,
+      });
       onSuccess(parsed.data.email);
     } catch {
       setSubmitError(ACCESS_PORTAL_COPY.networkError);
+      track('access_request_error', { error_code: 'network', field: null });
     } finally {
       setLoading(false);
     }
@@ -109,7 +123,17 @@ export function AccessRequestForm({ onSuccess, initialEmail = '' }: Props) {
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4"
+      noValidate
+      onFocusCapture={() => {
+        if (!formStarted.current) {
+          formStarted.current = true;
+          track('access_request_start');
+        }
+      }}
+    >
       <div className="flex items-center gap-2 text-xs text-muted-foreground border-b border-border/60 pb-3">
         <Shield className="h-3.5 w-3.5 text-primary shrink-0" aria-hidden />
         <span>{ACCESS_PORTAL_COPY.formSubtitle}</span>

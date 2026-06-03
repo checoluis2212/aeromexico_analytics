@@ -71,3 +71,21 @@ docker build -t wws-ai . && docker run -p 8000:8000 -e OPENAI_API_KEY=sk-... wws
 ```
 
 Añadir `AI_SERVICE_URL` en Vercel apuntando al servicio desplegado.
+
+---
+
+## GTM / GA4 — dataLayer del portal
+
+Variables de entorno: `NEXT_PUBLIC_GTM_ID`, `NEXT_PUBLIC_GA4_MEASUREMENT_ID`.
+
+### Checklist en GTM
+
+1. Variable **DLV - user_id** ← Data Layer Variable `user_id`.
+2. Tag **GA4 Configuration** → User-ID activado = `{{DLV - user_id}}`.
+3. Triggers **Custom Event** para eventos del portal (`login`, `generate_lead`, `request_submit`, `assistant_*`, `cc_*`, `nav_click`, etc.).
+4. Tags **GA4 Event** mapeando parámetros custom a dimensiones GA4:
+   - `portal_section`, `page_type`, `app_role`, `request_type`, `module`, `link_id`, `nav_zone`.
+5. Validar en **GTM Preview** + **GA4 DebugView** (usuario demo con sesión).
+
+Eventos documentados en `event_catalog` (categoría `portal`) — migración `024_portal_analytics_events.sql`.
+

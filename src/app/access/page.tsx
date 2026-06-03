@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { PreEntryPortal } from '@/components/access/pre-entry-portal';
 import { getAccessRequestByEmail } from '@/lib/access-requests/submit-request';
@@ -5,10 +6,18 @@ import { hasPlatformAccess, type ProfilePlatformAccess } from '@/lib/access-requ
 import { redirect } from 'next/navigation';
 
 type PageProps = {
-  searchParams: Promise<{ state?: string; email?: string }>;
+  searchParams: Promise<{ state?: string; email?: string; intent?: string }>;
 };
 
-export default async function AccessPage({ searchParams }: PageProps) {
+function AccessPortalFallback() {
+  return (
+    <div className="access-portal-shell min-h-screen flex items-center justify-center text-muted-foreground text-sm">
+      Cargando…
+    </div>
+  );
+}
+
+async function AccessPageContent({ searchParams }: PageProps) {
   const { state, email: emailParam } = await searchParams;
 
   const supabase = await createClient();
@@ -47,4 +56,12 @@ export default async function AccessPage({ searchParams }: PageProps) {
   }
 
   return <PreEntryPortal initialView="form" initialEmail={emailParam ?? ''} />;
+}
+
+export default function AccessPage(props: PageProps) {
+  return (
+    <Suspense fallback={<AccessPortalFallback />}>
+      <AccessPageContent {...props} />
+    </Suspense>
+  );
 }

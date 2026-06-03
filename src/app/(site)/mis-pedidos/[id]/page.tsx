@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/layout/page-header';
 import { Section } from '@/components/layout/section';
 import { RequestDetailPanel } from '@/components/my-requests/request-detail-panel';
+import { RequestDetailTracker } from '@/components/analytics/request-detail-tracker';
 import { MisPedidosAiEntry } from '@/components/my-requests/mis-pedidos-ai-entry';
 import { NotificationSetupPrompt } from '@/components/account/notification-setup-prompt';
 import { mapDeliveryStatusForUser } from '@/lib/integrations/external-sync';
@@ -62,6 +63,11 @@ export default async function MisPedidoDetailPage({
       />
 
       <Section className="py-8 sm:py-12" containerClassName="max-w-6xl">
+        <RequestDetailTracker
+          requestId={request.id}
+          deliveryStatus={request.delivery_status}
+          sergioDecision={request.sergio_decision}
+        />
         <div className="mb-6 space-y-4">
           <MisPedidosAiEntry
             variant="detail"

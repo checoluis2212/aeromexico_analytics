@@ -40,6 +40,7 @@ import {
 } from '@/lib/ai/guided-request-coach';
 import type { AssistantMode } from '@/lib/ai/assistant-modes';
 import { getUseCaseById } from '@/lib/ai/aeromexico-use-cases';
+import { useTrackEvent } from '@/components/analytics/analytics-context';
 
 type SendOptions = {
   action?: RequestChatAction;
@@ -97,6 +98,7 @@ export function ChatPanel({
   expanded: expandedProp,
   onExpandedChange,
 }: ChatPanelProps) {
+  const track = useTrackEvent();
   const [messages, setMessages] = useState<CopilotMessage[]>(() =>
     welcomeMessage ? [{ role: 'assistant', content: welcomeMessage }] : []
   );
@@ -145,6 +147,10 @@ export function ChatPanel({
     Boolean(requestId);
   const sergioBranding =
     isConsultorMode || orderOnlyMode || guidedMode === 'guided';
+
+  useEffect(() => {
+    track('assistant_open', { module });
+  }, [track, module]);
 
   const showScenariosInDock = isConsultorEmpty && scenarios.length > 0;
   const showSuggestionsInDock = isConsultorEmpty && suggestions.length > 0;
@@ -255,6 +261,10 @@ export function ChatPanel({
 
     if (!trimmed && !opts?.action) return;
     if (isGuidedStepQuestion ? guidedStepChatLoading : loading) return;
+
+    if (trimmed && !opts?.action) {
+      track('assistant_message_send', { module, message_length: trimmed.length });
+    }
 
     const displayText =
       opts?.displayText ??
@@ -401,6 +411,17 @@ export function ChatPanel({
           reference_code: data.request_created.reference_code ?? null,
         });
         setGuidedMode('sent');
+        track('request_created_from_chat', {
+          request_id: data.request_created.id,
+          request_type: data.request_created.type ?? 'unknown',
+          module,
+        });
+        track('request_submit', {
+          request_id: data.request_created.id,
+          request_type: data.request_created.type ?? 'unknown',
+          source: 'chat',
+          module,
+        });
         toast.success('Pedido enviado', {
           description: data.request_created.reference_code
             ? `ID ${data.request_created.reference_code}`
@@ -445,6 +466,7 @@ export function ChatPanel({
 
   function handleScenario(scenario: ScenarioChip) {
     if (!scenario.message) return;
+    track('assistant_suggestion_click', { suggestion_id: scenario.id, module });
     setActiveScenarioId(scenario.id);
     sendMessage(scenario.message, {
       scenarioId: scenario.id,
@@ -455,8 +477,14 @@ export function ChatPanel({
   const handleGuidedStepChange = useCallback(
     (step: GuidedWizardStepId, form: GuidedRequestForm) => {
       setGuidedProgress({ step, form });
+      track('request_step_view', {
+        step_number: step,
+        step_name: step,
+        source: 'chat',
+        module,
+      });
     },
-    []
+    [track, module]
   );
 
   function beginGuidedOrderFromMessages(

@@ -27,6 +27,7 @@ import { APP_ROLE_LABELS } from '@/lib/auth/access';
 import type { SiteChromeBootstrap } from '@/lib/navigation/site-chrome-server';
 import { pedirHubHref } from '@/lib/ai/assistant-modes';
 import { guestEntryHref } from '@/lib/access-requests/guest-entry';
+import { useTrackEvent } from '@/components/analytics/analytics-context';
 import { isClientNavItemActive } from '@/lib/navigation/client-nav';
 import { cn } from '@/lib/utils';
 
@@ -61,6 +62,11 @@ export function Header({
 }: HeaderProps) {
   const pathname = usePathname();
   const { isSergioAdmin, appRole, isAuthenticated, loading: roleLoading } = useAppRole();
+  const track = useTrackEvent();
+
+  function trackNav(linkId: string, destination: string, navZone: 'header' | 'footer' | 'hero' = 'header') {
+    track('nav_click', { link_id: linkId, destination, nav_zone: navZone });
+  }
 
   const resolvedRole = roleLoading && bootstrap?.appRole ? bootstrap.appRole : appRole;
   const resolvedSergio = resolvedRole === 'sergio_admin';
@@ -207,14 +213,22 @@ export function Header({
           )}
           {!clientWorkspace && !resolvedSergio && (
             <Button variant="ghost" size="sm" asChild className="text-[13px] h-8 text-muted-foreground">
-              <Link href={resolvedAuth ? '/mis-pedidos' : guestEntryHref()}>
+              <Link
+                href={resolvedAuth ? '/mis-pedidos' : guestEntryHref()}
+                onClick={() =>
+                  trackNav('mis_pedidos', resolvedAuth ? '/mis-pedidos' : guestEntryHref())
+                }
+              >
                 Mis pedidos
               </Link>
             </Button>
           )}
           {!clientWorkspace && (
             <Button size="sm" asChild className="h-8 text-[13px] bg-primary text-primary-foreground hover:bg-primary/90 glow-aero gap-1.5">
-              <Link href={primaryActionHref}>
+              <Link
+                href={primaryActionHref}
+                onClick={() => trackNav('pedir_ia', primaryActionHref)}
+              >
                 {!resolvedSergio && <Sparkles className="h-3.5 w-3.5" />}
                 {primaryActionLabel}
               </Link>

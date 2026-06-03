@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Roboto, Roboto_Mono } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
+import { AnalyticsProvider } from '@/components/analytics/analytics-provider';
 import { siteConfig } from '@/lib/constants';
 import { APP_THEME } from '@/lib/theme';
 import './globals.css';
@@ -81,7 +82,9 @@ gtag('js',new Date());gtag('config','${gaId}');`,
             />
           </noscript>
         )}
-        <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
+        <div className="relative z-10 flex min-h-screen flex-col">
+          <AnalyticsProvider>{children}</AnalyticsProvider>
+        </div>
         <Toaster richColors position="top-right" />
       </body>
     </html>

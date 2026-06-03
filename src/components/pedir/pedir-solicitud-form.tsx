@@ -21,6 +21,8 @@ import { siteConfig } from '@/lib/constants';
 import { portalContentClass } from '@/lib/layout/portal';
 import { cn } from '@/lib/utils';
 import type { AssistantRequestDraft } from '@/lib/ai/assistant-request-flow';
+import { useTrackEvent } from '@/components/analytics/analytics-context';
+import type { GuidedWizardStepId } from '@/lib/ai/guided-request-coach';
 
 type Props = {
   autoStart?: boolean;
@@ -28,6 +30,7 @@ type Props = {
 };
 
 export function PedirSolicitudForm({ autoStart, initialScenarioId }: Props) {
+  const track = useTrackEvent();
   const [guidedMode, setGuidedMode] = useState<GuidedFlowMode>(autoStart ? 'guided' : 'idle');
   const [loading, setLoading] = useState(false);
   const [createdRequest, setCreatedRequest] = useState<{
@@ -55,7 +58,8 @@ export function PedirSolicitudForm({ autoStart, initialScenarioId }: Props) {
       }
     }
     setGuidedMode('guided');
-  }, [autoStart, initialScenarioId]);
+    track('request_flow_start', { source: 'form', mode: 'guided' });
+  }, [autoStart, initialScenarioId, track]);
 
   const confirmRequest = useCallback(async (draft: AssistantRequestDraft) => {
     setLoading(true);
@@ -76,6 +80,12 @@ export function PedirSolicitudForm({ autoStart, initialScenarioId }: Props) {
         reference_code: data.reference_code ?? null,
       });
       setGuidedMode('sent');
+      track('request_submit', {
+        request_type: draft.type,
+        priority: draft.priority,
+        source: 'form',
+        request_id: data.id,
+      });
       toast.success('Pedido enviado', {
         description: data.reference_code
           ? `Referencia ${data.reference_code}`
@@ -86,7 +96,14 @@ export function PedirSolicitudForm({ autoStart, initialScenarioId }: Props) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [track]);
+
+  const handleStepChange = useCallback(
+    (step: GuidedWizardStepId) => {
+      track('request_step_view', { step_number: step, step_name: step, source: 'form' });
+    },
+    [track]
+  );
 
   return (
     <div className="flex flex-1 flex-col min-h-0 h-full w-full">
@@ -130,13 +147,17 @@ export function PedirSolicitudForm({ autoStart, initialScenarioId }: Props) {
           initialForm={initialForm}
           enableStepAi={false}
           embedded
-          onOpen={() => setGuidedMode('guided')}
+          onOpen={() => {
+            setGuidedMode('guided');
+            track('request_flow_start', { source: 'form', mode: 'guided' });
+          }}
           onClose={() => {
             setGuidedMode('idle');
             setCreatedRequest(null);
             setInitialForm(undefined);
           }}
           onConfirm={(draft) => void confirmRequest(draft)}
+          onStepChange={handleStepChange}
         />
       </div>
     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { RequestFilters } from '@/components/my-requests/request-filters';
 import { RequestsTable } from '@/components/my-requests/requests-table';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import { Download, Sparkles } from 'lucide-react';
 import { MisPedidosAiCoachmark } from '@/components/my-requests/mis-pedidos-ai-coachmark';
 import { RequestSummary } from '@/components/my-requests/request-summary';
 import type { MyRequestRow } from '@/components/my-requests/request-card';
+import { useTrackEvent } from '@/components/analytics/analytics-context';
 
 interface RequestsInboxProps {
   requests: MyRequestRow[];
@@ -34,7 +35,21 @@ export function RequestsInbox({
   emptyMessage = 'No hay pedidos con estos filtros.',
   showAiActions = false,
 }: RequestsInboxProps) {
+  const track = useTrackEvent();
   const [filters, setFilters] = useState<RequestFilterState>(defaultFilters);
+
+  const handleFilterChange = useCallback(
+    (next: RequestFilterState) => {
+      setFilters(next);
+      track('request_list_filter', {
+        filter_status: next.status,
+        filter_type: next.type,
+        filter_priority: next.priority,
+        filter_area: next.area,
+      });
+    },
+    [track]
+  );
 
   const users = useMemo(() => extractRequesters(requests), [requests]);
   const areas = useMemo(() => extractAreas(requests), [requests]);
@@ -46,7 +61,7 @@ export function RequestsInbox({
 
       <RequestFilters
         filters={filters}
-        onChange={setFilters}
+        onChange={handleFilterChange}
         users={users}
         areas={areas}
         showUserFilter={showUserFilter}

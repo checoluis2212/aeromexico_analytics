@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { RequestCard, type MyRequestRow } from '@/components/my-requests/request-card';
 import { RequestFilters } from '@/components/my-requests/request-filters';
 import { SergioInboxSummary } from '@/components/command-center/sergio-inbox-summary';
@@ -22,6 +22,7 @@ import {
 import { exportRequestsCsv } from '@/lib/requests/export-csv';
 import { Download, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTrackEvent } from '@/components/analytics/analytics-context';
 
 type Props = {
   requests: MyRequestRow[];
@@ -37,9 +38,22 @@ function defaultQueue(stats: ReturnType<typeof computeSergioInboxStats>): Sergio
 }
 
 export function SergioInbox({ requests, detailBasePath = '/command-center/pedidos' }: Props) {
+  const track = useTrackEvent();
   const stats = useMemo(() => computeSergioInboxStats(requests), [requests]);
   const [queue, setQueue] = useState<SergioQueue>(() => defaultQueue(stats));
   const [filters, setFilters] = useState<RequestFilterState>(defaultFilters);
+
+  const handleFilterChange = useCallback(
+    (next: RequestFilterState) => {
+      setFilters(next);
+      track('request_list_filter', {
+        filter_status: next.status,
+        filter_type: next.type,
+        cc_area: 'pedidos',
+      });
+    },
+    [track]
+  );
 
   const users = useMemo(() => extractRequesters(requests), [requests]);
   const areas = useMemo(() => extractAreas(requests), [requests]);
@@ -119,7 +133,7 @@ export function SergioInbox({ requests, detailBasePath = '/command-center/pedido
 
       <RequestFilters
         filters={filters}
-        onChange={setFilters}
+        onChange={handleFilterChange}
         users={users}
         areas={areas}
         showUserFilter

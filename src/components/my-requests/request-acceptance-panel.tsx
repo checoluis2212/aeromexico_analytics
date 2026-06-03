@@ -15,6 +15,7 @@ import { es } from 'date-fns/locale';
 import { Brain, CheckCircle2, Loader2, Sparkles, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useTrackEvent } from '@/components/analytics/analytics-context';
 
 type Props = {
   requestId: string;
@@ -34,6 +35,7 @@ export function RequestAcceptancePanel({
   cachedAdvice,
 }: Props) {
   const router = useRouter();
+  const track = useTrackEvent();
   const [dueDate, setDueDate] = useState(committedDueDate ?? '');
   const [notes, setNotes] = useState(sergioNotes ?? '');
   const [advice, setAdvice] = useState<CapacityAdvice | null>(cachedAdvice ?? null);
@@ -69,6 +71,10 @@ export function RequestAcceptancePanel({
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? 'Error al guardar');
+      track('cc_request_action', {
+        action: dec,
+        request_id: requestId,
+      });
       toast.success(dec === 'accepted' ? 'Pedido aceptado — solicitante notificado' : 'Pedido rechazado');
       router.refresh();
     } catch (err) {

@@ -12,6 +12,7 @@ import {
 } from '@/lib/availability-config';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import { useTrackEvent } from '@/components/analytics/analytics-context';
 
 const OPTIONS: SergioCapacity[] = [...CAPACITY_ORDER];
 
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export function AvailabilityToggle({ initial }: Props) {
+  const track = useTrackEvent();
   const [availability, setAvailability] = useState(initial);
   const [note, setNote] = useState(initial.note ?? '');
   const [saving, setSaving] = useState(false);
@@ -35,6 +37,7 @@ export function AvailabilityToggle({ initial }: Props) {
       if (!res.ok) throw new Error('No se pudo guardar');
       const data = (await res.json()) as SergioAvailability;
       setAvailability(data);
+      track('cc_semaphore_change', { status: capacity });
       toast.success(`Semáforo → ${CAPACITY_CONFIG[capacity].label}`);
     } catch {
       toast.error('Error al actualizar el semáforo');

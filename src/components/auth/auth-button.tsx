@@ -14,6 +14,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { roleLabels } from '@/lib/constants';
 import { getAppRole, APP_ROLE_LABELS, type AppRole } from '@/lib/auth/access';
+import { trackLogout } from '@/components/analytics/analytics-provider';
 import { LogIn, LogOut, LayoutDashboard, User, Inbox, Shield } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -52,6 +53,7 @@ export function AuthButton() {
   }, []);
 
   async function handleLogout() {
+    trackLogout();
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push('/');

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -18,6 +19,7 @@ import { AccessRequestForm } from '@/components/access/access-request-form';
 import { AccessSuccessPanel } from '@/components/access/access-success-panel';
 import { AccessPendingPanel } from '@/components/access/access-pending-panel';
 import { siteConfig } from '@/lib/constants';
+import { useTrackEvent } from '@/components/analytics/analytics-context';
 
 type View = 'form' | 'success' | 'pending';
 
@@ -27,6 +29,8 @@ type Props = {
 };
 
 export function PreEntryPortal({ initialView = 'form', initialEmail = '' }: Props) {
+  const searchParams = useSearchParams();
+  const track = useTrackEvent();
   const [view, setView] = useState<View>(initialView);
   const [email, setEmail] = useState(initialEmail);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -35,6 +39,13 @@ export function PreEntryPortal({ initialView = 'form', initialEmail = '' }: Prop
     const stored = localStorage.getItem('access-portal-theme');
     if (stored === 'light' || stored === 'dark') setTheme(stored);
   }, []);
+
+  useEffect(() => {
+    track('access_portal_view', {
+      intent: searchParams.get('intent') ?? undefined,
+      initial_view: initialView,
+    });
+  }, [track, searchParams, initialView]);
 
   const handleThemeChange = useCallback((next: 'light' | 'dark') => {
     setTheme(next);

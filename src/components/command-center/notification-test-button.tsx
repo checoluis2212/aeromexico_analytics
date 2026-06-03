@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Bell, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTrackEvent } from '@/components/analytics/analytics-context';
 
 type Status = {
   configured: boolean;
@@ -13,6 +14,7 @@ type Status = {
 };
 
 export function NotificationTestButton() {
+  const track = useTrackEvent();
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
 
@@ -31,6 +33,7 @@ export function NotificationTestButton() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Error');
+      track('cc_integration_test', { integration: 'slack_teams' });
       toast.success('Mensaje de prueba enviado', {
         description: 'Revisa Slack y/o Teams.',
       });

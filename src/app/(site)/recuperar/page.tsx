@@ -11,8 +11,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Mail, Loader2 } from 'lucide-react';
+import { useTrackEvent } from '@/components/analytics/analytics-context';
 
 export default function RecuperarPage() {
+  const track = useTrackEvent();
   const [email, setEmail] = useState('');
   const [sending, setSending] = useState(false);
 
@@ -25,6 +27,7 @@ export default function RecuperarPage() {
       const redirectTo = `${origin}/auth/callback?redirect=${encodeURIComponent('/perfil?mode=recovery')}`;
       const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
       if (error) throw error;
+      track('password_reset_request');
       toast.success('Te mandé un correo', { description: 'Abre el link para definir una contraseña nueva.' });
       setEmail('');
     } catch (err) {

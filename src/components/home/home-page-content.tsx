@@ -29,6 +29,7 @@ import {
 } from '@/lib/ai/assistant-modes';
 import { useAppRole } from '@/hooks/use-app-role';
 import type { HomeStatsData } from '@/lib/home-stats';
+import { useTrackEvent } from '@/components/analytics/analytics-context';
 
 const iconMap: Record<string, React.ReactNode> = {
   Target: <Target className="h-5 w-5" />,
@@ -52,6 +53,7 @@ type Props = {
 
 export function HomePageContent({ availability, stats }: Props) {
   const { isAuthenticated, loading: authLoading } = useAppRole();
+  const track = useTrackEvent();
 
   const formHref =
     !authLoading && isAuthenticated
@@ -85,13 +87,19 @@ export function HomePageContent({ availability, stats }: Props) {
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button size="lg" asChild className="glow-aero">
-                  <Link href={formHref}>
+                  <Link
+                    href={formHref}
+                    onClick={() => track('nav_click', { link_id: 'hero_pedir', destination: formHref, nav_zone: 'hero' })}
+                  >
                     Pedir trabajo
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild className="border-primary/25 bg-card/30">
-                  <Link href={agentHref}>
+                  <Link
+                    href={agentHref}
+                    onClick={() => track('nav_click', { link_id: 'hero_ai_agent', destination: agentHref, nav_zone: 'hero' })}
+                  >
                     <Sparkles className="mr-2 h-4 w-4" />
                     AI Agent
                   </Link>

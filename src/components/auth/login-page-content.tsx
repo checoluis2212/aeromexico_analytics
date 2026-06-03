@@ -17,12 +17,16 @@ import { ACCESS_PORTAL_COPY, AEROMEXICO_LOGO_SRC } from '@/lib/access-requests/c
 import { AccessThemeToggle } from '@/components/access/access-theme-toggle';
 import { toast } from 'sonner';
 import { ArrowRight, Loader2, LockKeyhole, ShieldCheck } from 'lucide-react';
+import { useTrackEvent } from '@/components/analytics/analytics-context';
+import { setAnalyticsUser } from '@/lib/analytics/data-layer';
+import { getAppRole } from '@/lib/auth/access';
 
 export function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect');
   const authError = searchParams.get('error');
+  const track = useTrackEvent();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,6 +46,7 @@ export function LoginPageContent() {
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    track('login_start');
 
     const supabase = createClient();
     const normalizedEmail = email.trim().toLowerCase();
@@ -52,6 +57,7 @@ export function LoginPageContent() {
     });
 
     if (error) {
+      track('login_error', { error_reason: 'invalid_credentials' });
       toast.error('No pudimos iniciar sesión', {
         description: LOGIN_PAGE_COPY.errors.invalidCredentials,
       });
@@ -77,6 +83,9 @@ export function LoginPageContent() {
       if (statusRes.ok) {
         const json = await statusRes.json();
         requestStatus = json.status ?? null;
+        if (requestStatus) {
+          track('access_status_check', { request_status: requestStatus });
+        }
       }
     } catch {
       /* status opcional */
@@ -86,12 +95,20 @@ export function LoginPageContent() {
 
     if (!eligibility.allowed) {
       await supabase.auth.signOut();
+      track('login_error', { error_reason: eligibility.code });
       toast.error('Acceso no disponible', { description: eligibility.message });
       router.push(eligibility.redirectPath);
       router.refresh();
       setLoading(false);
       return;
     }
+
+    setAnalyticsUser({
+      id: user!.id,
+      app_role: getAppRole(profile),
+      acc_role: profile?.acc_role ?? null,
+    });
+    track('login', { method: 'email' });
 
     toast.success('Bienvenido');
     router.push(getPostLoginPath(profile, redirect));

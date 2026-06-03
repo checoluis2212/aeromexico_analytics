@@ -4,11 +4,7 @@ import { Suspense, useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { trackPageView } from '@/lib/analytics/data-layer';
 
-function PortalPageTrackerInner({
-  authState,
-}: {
-  authState: 'authenticated' | 'anonymous';
-}) {
+function PortalPageTrackerInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const lastKey = useRef<string | null>(null);
@@ -17,20 +13,16 @@ function PortalPageTrackerInner({
     const key = `${pathname}?${searchParams.toString()}`;
     if (lastKey.current === key) return;
     lastKey.current = key;
-    trackPageView(pathname, authState);
-  }, [pathname, searchParams, authState]);
+    trackPageView(pathname);
+  }, [pathname, searchParams]);
 
   return null;
 }
 
-export function PortalPageTracker({
-  authState,
-}: {
-  authState: 'authenticated' | 'anonymous';
-}) {
+export function PortalPageTracker() {
   return (
     <Suspense fallback={null}>
-      <PortalPageTrackerInner authState={authState} />
+      <PortalPageTrackerInner />
     </Suspense>
   );
 }

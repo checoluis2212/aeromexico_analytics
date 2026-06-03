@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { getAppRole, type AppRole } from '@/lib/auth/access';
 import {
@@ -15,15 +15,12 @@ import {
 import { PortalPageTracker } from '@/components/analytics/portal-page-tracker';
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
-  const [authState, setAuthState] = useState<'authenticated' | 'anonymous'>('anonymous');
-
   useEffect(() => {
     const supabase = createClient();
 
     async function syncUser(userId: string | null) {
       if (!userId) {
         clearAnalyticsUser();
-        setAuthState('anonymous');
         return;
       }
 
@@ -44,17 +41,14 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
         app_role: appRole,
         acc_role: profile?.acc_role ?? null,
       });
-      setAuthState('authenticated');
     }
-
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      syncUser(user?.id ?? null);
-    });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      syncUser(session?.user?.id ?? null);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // Evita ráfagas: getUser + INITIAL_SESSION + TOKEN_REFRESHED repetían user_context
+      if (event === 'TOKEN_REFRESHED') return;
+      void syncUser(session?.user?.id ?? null);
     });
 
     return () => subscription.unsubscribe();
@@ -68,7 +62,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AnalyticsContextProvider value={value}>
-      <PortalPageTracker authState={authState} />
+      <PortalPageTracker />
       {children}
     </AnalyticsContextProvider>
   );

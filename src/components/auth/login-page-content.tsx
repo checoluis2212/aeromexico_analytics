@@ -18,8 +18,6 @@ import { AccessThemeToggle } from '@/components/access/access-theme-toggle';
 import { toast } from 'sonner';
 import { ArrowRight, Loader2, LockKeyhole, ShieldCheck } from 'lucide-react';
 import { useTrackEvent } from '@/components/analytics/analytics-context';
-import { setAnalyticsUser } from '@/lib/analytics/data-layer';
-import { getAppRole } from '@/lib/auth/access';
 
 export function LoginPageContent() {
   const router = useRouter();
@@ -103,11 +101,6 @@ export function LoginPageContent() {
       return;
     }
 
-    setAnalyticsUser({
-      id: user!.id,
-      app_role: getAppRole(profile),
-      acc_role: profile?.acc_role ?? null,
-    });
     track('login', { method: 'email' });
 
     toast.success('Bienvenido');

@@ -66,10 +66,12 @@ export function getPostLoginPath(
   profile: (ProfileAccess & { platform_access_approved?: boolean | null }) | null,
   redirect?: string | null
 ): string {
+  if (!profile) return '/access';
+
   const role = getAppRole(profile);
   const internal = role === 'sergio_admin' || role === 'stakeholder';
 
-  if (!internal && profile && profile.platform_access_approved !== true) {
+  if (!internal && profile.platform_access_approved !== true) {
     return '/access?state=pending';
   }
 

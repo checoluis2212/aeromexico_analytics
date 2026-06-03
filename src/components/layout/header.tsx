@@ -25,7 +25,8 @@ import { InternalWorkspaceMenu } from '@/components/layout/internal-workspace-me
 import { useAppRole } from '@/hooks/use-app-role';
 import { APP_ROLE_LABELS } from '@/lib/auth/access';
 import type { SiteChromeBootstrap } from '@/lib/navigation/site-chrome-server';
-import { pedirHubHref, pedirLoginRedirect } from '@/lib/ai/assistant-modes';
+import { pedirHubHref } from '@/lib/ai/assistant-modes';
+import { guestEntryHref } from '@/lib/access-requests/guest-entry';
 import { isClientNavItemActive } from '@/lib/navigation/client-nav';
 import { cn } from '@/lib/utils';
 
@@ -74,7 +75,7 @@ export function Header({
     ? '/command-center/admin'
     : resolvedAuth
       ? pedirHubHref()
-      : pedirLoginRedirect();
+      : guestEntryHref('pedir');
 
   const primaryActionLabel = resolvedSergio ? 'Panel Sergio' : 'Pedir con IA';
 
@@ -206,7 +207,7 @@ export function Header({
           )}
           {!clientWorkspace && !resolvedSergio && (
             <Button variant="ghost" size="sm" asChild className="text-[13px] h-8 text-muted-foreground">
-              <Link href={resolvedAuth ? '/mis-pedidos' : '/login?redirect=/mis-pedidos'}>
+              <Link href={resolvedAuth ? '/mis-pedidos' : guestEntryHref()}>
                 Mis pedidos
               </Link>
             </Button>

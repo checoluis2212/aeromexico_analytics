@@ -34,7 +34,7 @@ Recibirás una notificación cuando tu solicitud haya sido revisada.`,
     'Ya existe una solicitud pendiente con este correo. Espera la respuesta del administrador.',
   rejectedHint:
     'Tu solicitud anterior no fue aprobada. Contacta al administrador o envía una nueva solicitud con información actualizada.',
-  loginCta: '¿Ya tienes acceso? Iniciar sesión',
+  loginCta: '¿Ya te dieron de alta? Iniciar sesión',
   checkStatus: 'Consultar estado de la solicitud',
   footer: 'Confidencial · Uso exclusivo Aeroméxico',
   fields: {

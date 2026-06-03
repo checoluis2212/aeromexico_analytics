@@ -65,7 +65,7 @@ export function aiAgentClientPreviewHref(opts?: {
 }
 
 export function pedirLoginRedirect(): string {
-  return `/login?redirect=${encodeURIComponent(pedirHubHref())}`;
+  return `/access?intent=pedir`;
 }
 
 /** @deprecated Usar solicitudFormHref o aiAgentHref */
@@ -76,12 +76,12 @@ export function preguntaleHref(opts: PreguntaleLinkOpts = {}): string {
   return solicitudFormHref({ escenario: opts.escenario, empezar: opts.empezar });
 }
 
-export function preguntaleLoginRedirect(opts: PreguntaleLinkOpts = {}): string {
-  return `/login?redirect=${encodeURIComponent(preguntaleHref(opts))}`;
+export function preguntaleLoginRedirect(_opts: PreguntaleLinkOpts = {}): string {
+  return '/access?intent=preguntale';
 }
 
-export function aiAgentLoginRedirect(opts?: { pedido?: string }): string {
-  return `/login?redirect=${encodeURIComponent(aiAgentHref(opts))}`;
+export function aiAgentLoginRedirect(_opts?: { pedido?: string }): string {
+  return '/access?intent=ai-agent';
 }
 
 export function assistantModeToApiModule(mode: AssistantMode, guidedOrder: boolean): string {

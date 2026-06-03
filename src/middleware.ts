@@ -14,5 +14,6 @@ export const config = {
     '/ai-agent',
     '/perfil/:path*',
     '/login',
+    '/access',
   ],
 };

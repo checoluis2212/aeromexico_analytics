@@ -1,0 +1,27 @@
+/* Scoped enterprise light theme for Pre-Entry Access Portal */
+.access-portal-shell[data-access-theme='light'] {
+  --background: oklch(0.99 0.002 250);
+  --foreground: oklch(0.22 0.02 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.02 250);
+  --muted: oklch(0.96 0.005 250);
+  --muted-foreground: oklch(0.48 0.02 250);
+  --border: oklch(0.9 0.01 250);
+  --input: oklch(0.98 0.005 250);
+  --primary: oklch(0.45 0.12 250);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.45 0.12 250);
+  color-scheme: light;
+}
+
+.access-portal-shell[data-access-theme='light'] .access-portal-backdrop {
+  background:
+    radial-gradient(70% 60% at 10% 0%, oklch(0.55 0.1 250 / 0.08), transparent 55%),
+    linear-gradient(180deg, oklch(0.98 0.005 250) 0%, oklch(0.94 0.01 250) 100%);
+}
+
+.access-portal-shell[data-access-theme='dark'] .access-portal-backdrop {
+  background:
+    radial-gradient(65% 55% at 18% 16%, oklch(0.76 0.15 208 / 0.18), transparent 62%),
+    linear-gradient(180deg, oklch(0.07 0.02 252) 0%, oklch(0.11 0.02 245) 100%);
+}

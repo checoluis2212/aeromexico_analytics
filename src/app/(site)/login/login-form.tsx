@@ -38,7 +38,7 @@ export default function LoginForm() {
     const { data: { user } } = await supabase.auth.getUser();
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role, acc_role')
+      .select('role, acc_role, platform_access_approved')
       .eq('id', user!.id)
       .single();
 
@@ -108,9 +108,10 @@ export default function LoginForm() {
           </form>
 
           <p className="mt-4 text-center text-[11px] text-muted-foreground leading-relaxed">
-            Para ver el estado de tus pedidos conmigo.
-            <br />
-            ¿Primera vez? Escríbeme y te creo la cuenta.
+            Need platform access?{' '}
+            <Link href="/access" className="text-primary hover:underline font-medium">
+              Submit an access request
+            </Link>
           </p>
 
           <p className="mt-3 text-center">

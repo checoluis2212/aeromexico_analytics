@@ -2,6 +2,12 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { getPostLoginPath, canAccessCommandCenter, isSergioAdmin, isSergioOnlyRoute } from '@/lib/auth/access';
 import {
+  hasPlatformAccess,
+  isPlatformAccessExemptPath,
+  PLATFORM_ACCESS_PATH,
+  type ProfilePlatformAccess,
+} from '@/lib/access-requests/platform-access';
+import {
   ADMIN_AGENT_PATH,
   CLIENT_PORTAL_PREVIEW_PARAM,
   CLIENT_PORTAL_PREVIEW_VALUE,
@@ -40,6 +46,22 @@ export async function updateSession(request: NextRequest) {
     url.pathname = '/login';
     url.searchParams.set('redirect', pathname);
     return NextResponse.redirect(url);
+  }
+
+  if (user && needsAuth && !isPlatformAccessExemptPath(pathname)) {
+    const { data: accessProfile } = await supabase
+      .from('profiles')
+      .select('role, acc_role, email, platform_access_approved')
+      .eq('id', user.id)
+      .single();
+
+    if (!hasPlatformAccess(accessProfile as ProfilePlatformAccess | null)) {
+      const url = request.nextUrl.clone();
+      url.pathname = PLATFORM_ACCESS_PATH;
+      url.searchParams.set('state', 'pending');
+      if (accessProfile?.email) url.searchParams.set('email', accessProfile.email);
+      return NextResponse.redirect(url);
+    }
   }
 
   if (user && pathname.startsWith('/command-center')) {
@@ -83,7 +105,7 @@ export async function updateSession(request: NextRequest) {
   if (user && pathname === '/login') {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role, acc_role, email')
+      .select('role, acc_role, email, platform_access_approved')
       .eq('id', user.id)
       .single();
 

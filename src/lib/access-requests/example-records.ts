@@ -1,0 +1,58 @@
+import type { PlatformAccessRequest } from '@/types/platform-access-request';
+
+/** Example records for admin dashboard development and Storybook */
+export const EXAMPLE_ACCESS_REQUESTS: PlatformAccessRequest[] = [
+  {
+    id: '00000000-0000-4000-8000-000000000001',
+    full_name: 'María González',
+    email: 'maria.gonzalez@aeromexico.com',
+    company: 'Aeroméxico',
+    department: 'Growth Marketing',
+    job_title: 'Analytics Manager',
+    reason:
+      'Require access to submit tracking requests and review delivery status for the Growth team quarterly planning cycle.',
+    status: 'pending',
+    admin_notes: null,
+    reviewer_notes: null,
+    proposed_role: 'client',
+    proposed_acc_role: null,
+    created_at: '2026-06-01T14:22:00.000Z',
+    reviewed_at: null,
+    reviewed_by: null,
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000002',
+    full_name: 'James Chen',
+    email: 'james.chen@aeromexico.com',
+    company: 'Aeroméxico',
+    department: 'E-Commerce',
+    job_title: 'Product Analyst',
+    reason:
+      'Need read access to event catalog and AI Agent for funnel analysis on checkout optimization initiative.',
+    status: 'approved',
+    admin_notes: 'Approved for Q3 initiative. Client role.',
+    reviewer_notes: 'Verified with department head.',
+    proposed_role: 'client',
+    proposed_acc_role: null,
+    created_at: '2026-05-20T09:10:00.000Z',
+    reviewed_at: '2026-05-21T16:45:00.000Z',
+    reviewed_by: null,
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000003',
+    full_name: 'Alex Rivera',
+    email: 'alex.rivera@external.com',
+    company: 'Vendor Analytics Co.',
+    department: 'Consulting',
+    job_title: 'Contractor',
+    reason: 'Requesting access to shared dashboards.',
+    status: 'rejected',
+    admin_notes: 'External domain — not eligible under corporate policy.',
+    reviewer_notes: null,
+    proposed_role: 'client',
+    proposed_acc_role: null,
+    created_at: '2026-05-18T11:00:00.000Z',
+    reviewed_at: '2026-05-19T08:30:00.000Z',
+    reviewed_by: null,
+  },
+];

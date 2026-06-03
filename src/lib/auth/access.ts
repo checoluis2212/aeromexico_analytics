@@ -62,11 +62,20 @@ export function isSergioOnlyRoute(pathname: string): boolean {
   );
 }
 
-export function getPostLoginPath(profile: ProfileAccess | null, redirect?: string | null): string {
+export function getPostLoginPath(
+  profile: (ProfileAccess & { platform_access_approved?: boolean | null }) | null,
+  redirect?: string | null
+): string {
+  const role = getAppRole(profile);
+  const internal = role === 'sergio_admin' || role === 'stakeholder';
+
+  if (!internal && profile && profile.platform_access_approved !== true) {
+    return '/access?state=pending';
+  }
+
   if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
     return redirect;
   }
-  const role = getAppRole(profile);
   if (role === 'sergio_admin') return '/command-center/admin';
   if (role === 'stakeholder') return '/command-center/executive';
   return '/mis-pedidos';

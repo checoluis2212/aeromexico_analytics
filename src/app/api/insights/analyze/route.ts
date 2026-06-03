@@ -1,14 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireApiSession } from '@/lib/auth/require-api-session';
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+const ALLOWED_EXTENSIONS = new Set(['csv', 'xlsx', 'xls']);
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await requireApiSession();
+    if (session instanceof NextResponse) return session;
+
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    }
+
+    if (file.size > MAX_UPLOAD_BYTES) {
+      return NextResponse.json({ error: 'Archivo demasiado grande (máx. 5 MB)' }, { status: 413 });
+    }
+
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+    if (!ALLOWED_EXTENSIONS.has(ext)) {
+      return NextResponse.json({ error: 'Tipo de archivo no permitido' }, { status: 400 });
     }
 
     const aiFormData = new FormData();

@@ -1,5 +1,7 @@
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { CommandCenterTopBar } from '@/components/command-center/top-bar';
+import { CommandCenterPageContent } from '@/components/command-center/command-center-page-content';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, Layers, Tag, BarChart2, Database, PieChart } from 'lucide-react';
@@ -32,7 +34,7 @@ export default async function EventsCatalogPage() {
         subtitle="Los eventos que capturamos en web y app — de forma sencilla"
       />
 
-      <div className="p-6 space-y-6">
+      <CommandCenterPageContent className="space-y-6">
         {/* Pipeline visual */}
         <Card className="bg-card/30 border-border/60">
           <CardContent className="py-6">
@@ -113,7 +115,14 @@ export default async function EventsCatalogPage() {
             );
           })}
         </div>
-      </div>
+
+        <p className="text-sm text-muted-foreground pt-2 border-t border-border/40">
+          ¿Qué significa una métrica?{' '}
+          <Link href="/glosario" className="text-primary hover:underline">
+            Ver glosario
+          </Link>
+        </p>
+      </CommandCenterPageContent>
     </>
   );
 }

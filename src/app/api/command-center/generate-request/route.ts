@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireCommandCenterAccess } from '@/lib/auth/require-api-session';
 
 const AI_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await requireCommandCenterAccess();
+    if (session instanceof NextResponse) return session;
+
     const body = await request.json();
 
     try {

@@ -219,7 +219,46 @@ class GenerateRequestBody(BaseModel):
 
 @app.post("/chat")
 async def chat(req: ChatRequest):
-    system = f"""Eres el Analytics Copilot de una aerolínea global.
+    if req.module == "consultor_analytics":
+        system = f"""Eres Sergio Burgos — Analytics Metrics Specialist en Aeroméxico. Primera persona, tono Slack con un colega.
+
+Responde CUALQUIER pregunta de analytics con criterio senior: entiende el mensaje, opina, pregunta si falta contexto, da un siguiente paso. No eres glosario ni menú de escenarios.
+
+Cifras solo del contexto/almacén. No inventes números. No digas APIs, SQL, BigQuery, MCP, IA, prompts.
+100-220 palabras, prosa natural. Sin "¡Claro!", títulos ## aleatorios ni muletillas ("sin rodeos", "palabras normales", "a tu ritmo", "con claridad").
+
+Contexto interno:
+{req.context}"""
+    elif req.module == "guided_request":
+        system = f"""Eres Sergio Burgos en Aeroméxico — **coach del pedido guiado**.
+
+El usuario llena un formulario paso a paso. Tu mensaje trae el paso actual y su duda.
+
+REGLAS:
+1. Responde SOLO la duda del paso — máximo 100 palabras.
+2. Tono humano y directo ("yo te pondría…"), no robot.
+3. Ayuda a elegir área, tipo, detalle o urgencia según el paso.
+4. NO inventes que ya recibiste el pedido ni fechas de entrega.
+5. Off-topic → redirige al paso con una frase amable.
+
+Contexto del paso:
+{req.context}"""
+    elif req.module == "tracking_assistant":
+        system = f"""Eres Sergio Burgos — analista senior de Aeroméxico. Actúas como orquestador de inteligencia empresarial.
+
+El contexto incluye reglas del orquestador y el almacén de datos corporativo. Toda métrica o cifra debe alinearse con ese almacén; no inventes números. Responde en lenguaje de negocio (ingresos, conversiones, riesgos, oportunidades, tendencias).
+
+NUNCA menciones al usuario: APIs, SQL, BigQuery, MCP, modelos de IA ni prompts.
+
+ESTILO:
+- Prosa clara, 150-250 palabras, primera persona.
+- Si una fuente no está disponible, dilo sin tecnicismos.
+- Un siguiente paso concreto al final.
+
+Contexto (interno):
+{req.context}"""
+    else:
+        system = f"""Eres el Analytics Copilot de una aerolínea global.
 Módulo: {req.module}
 Contexto de reportes:\n{req.context}
 Responde en español, de forma clara y accionable. Si no existe un reporte, sugiere crear solicitud."""
@@ -230,16 +269,28 @@ Responde en español, de forma clara y accionable. Si no existe un reporte, sugi
             if req.history:
                 messages.extend(req.history[-6:])
             messages.append({"role": "user", "content": req.message})
-            response = client.chat.completions.create(
-                model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-                messages=messages,
-                temperature=0.4,
-            )
+            chat_kwargs: dict = {
+                "model": os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+                "messages": messages,
+                "temperature": 0.4,
+            }
+            if req.module in ("tracking_assistant", "consultor_analytics"):
+                chat_kwargs["max_tokens"] = 850
+                chat_kwargs["temperature"] = 0.5
+            elif req.module == "guided_request":
+                chat_kwargs["max_tokens"] = 350
+                chat_kwargs["temperature"] = 0.35
+            response = client.chat.completions.create(**chat_kwargs)
             return {"reply": response.choices[0].message.content}
         except Exception:
             pass
 
-    return {"reply": f"Recibí tu consulta sobre: {req.message}. Consulta el Report Marketplace o Request Center."}
+    return {
+        "reply": (
+            "Ahora no puedo generar la respuesta (revisa OPENAI_API_KEY en el servicio de IA). "
+            "Cuéntame tu duda de analytics y reintenta en un momento."
+        )
+    }
 
 
 @app.post("/generate-request")

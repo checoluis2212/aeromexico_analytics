@@ -67,6 +67,7 @@ export function adviseCapacityRuleBased(input: {
   let buffer = effort;
   if (capacity === 'limited') buffer += 3;
   if (capacity === 'full') buffer += 7;
+  if (capacity === 'oof') buffer += 14;
   buffer += Math.min(openTotal * 0.5, 10);
 
   const suggestedDays = Math.max(slaDays, Math.ceil(buffer));
@@ -74,14 +75,26 @@ export function adviseCapacityRuleBased(input: {
 
   const reasoning: string[] = [
     `Tienes ${openTotal} pedido(s) activo(s) (${urgentOpen} urgentes).`,
-    `Semáforo de capacidad: ${capacity === 'available' ? 'disponible' : capacity === 'limited' ? 'limitada' : 'llena'}.`,
+    `Semáforo de capacidad: ${
+      capacity === 'available'
+        ? 'disponible'
+        : capacity === 'limited'
+          ? 'limitada'
+          : capacity === 'oof'
+            ? 'fuera de oficina (OOF)'
+            : 'llena'
+    }.`,
     `Estimación para este tipo (${request.type}): ~${effort} días hábiles.`,
   ];
 
   let recommendation: CapacityAdvice['recommendation'] = 'accept';
   let confidence: CapacityAdvice['confidence'] = 'high';
 
-  if (capacity === 'full' && request.priority === 'p3_low') {
+  if (capacity === 'oof') {
+    recommendation = request.priority === 'p0_critical' ? 'defer' : 'reject';
+    confidence = 'high';
+    reasoning.push('Sergio está fuera de oficina — no auto-aceptar; solo P0 podría revisarse manualmente.');
+  } else if (capacity === 'full' && request.priority === 'p3_low') {
     recommendation = 'reject';
     confidence = 'high';
     reasoning.push('Capacidad llena y prioridad baja — considera rechazar o encolar a más de 2 semanas.');

@@ -12,6 +12,7 @@ import {
 import { Bell } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useAppRole } from '@/hooks/use-app-role';
 import { cn } from '@/lib/utils';
 
 interface Notification {
@@ -25,23 +26,29 @@ interface Notification {
 
 export function NotificationBell() {
   const router = useRouter();
+  const { isAuthenticated, loading: authLoading } = useAppRole();
   const [items, setItems] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
 
   async function load() {
     try {
-      const res = await fetch('/api/notifications');
-      if (res.ok) setItems(await res.json());
+      const res = await fetch('/api/notifications', { credentials: 'include' });
+      if (res.ok) {
+        setItems(await res.json());
+        return;
+      }
+      if (res.status === 401) setItems([]);
     } catch {
       /* ignore */
     }
   }
 
   useEffect(() => {
+    if (authLoading || !isAuthenticated) return;
     load();
     const interval = setInterval(load, 60_000);
     return () => clearInterval(interval);
-  }, []);
+  }, [authLoading, isAuthenticated]);
 
   const unread = items.filter((n) => !n.is_read).length;
 

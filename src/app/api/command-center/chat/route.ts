@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { requireCommandCenterAccess } from '@/lib/auth/require-api-session';
 
 const AI_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 
@@ -15,9 +15,12 @@ Reportes disponibles:
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await requireCommandCenterAccess();
+    if (session instanceof NextResponse) return session;
+
     const { message, module, history } = await request.json();
 
-    const supabase = await createClient();
+    const supabase = session.supabase;
     const { data: reports } = await supabase
       .from('reports')
       .select('title, description, category, dashboard_url, business_questions')

@@ -12,7 +12,8 @@ function escapeCsv(value: string) {
 
 export function exportRequestsCsv(requests: MyRequestRow[], filename = 'pedidos.csv') {
   const headers = [
-    'ID',
+    'ID pedido',
+    'UUID',
     'Título',
     'Solicitante',
     'Email',
@@ -24,6 +25,7 @@ export function exportRequestsCsv(requests: MyRequestRow[], filename = 'pedidos.
   ];
 
   const rows = requests.map((r) => [
+    r.reference_code ?? '',
     r.id,
     r.title,
     r.requester_name ?? '',

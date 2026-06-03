@@ -2,14 +2,23 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { publicRequestLabel } from '@/lib/request-acceptance';
+import { clientRequestLabel } from '@/lib/requests/client-board';
+import {
+  deliveryStatusLabel,
+  getSergioQueue,
+  isOverdueDueDate,
+  isWaitingTooLong,
+} from '@/lib/requests/inbox-queue';
 import { priorityLabels, requestTypeLabels } from '@/lib/constants';
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ExternalLink, Clock, ChevronRight } from 'lucide-react';
+import { ExternalLink, Clock, ChevronRight, Calendar, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MisPedidosAiEntry } from '@/components/my-requests/mis-pedidos-ai-entry';
 
 export interface MyRequestRow {
   id: string;
+  reference_code?: string | null;
   title: string;
   type: string;
   priority: string;
@@ -49,22 +58,52 @@ export function isRequestPending(r: MyRequestRow) {
 export function RequestCard({
   request,
   detailHref,
+  mode = 'client',
 }: {
   request: MyRequestRow;
   detailHref?: string;
+  mode?: 'client' | 'sergio';
 }) {
   const decision = (request.sergio_decision ?? 'pending') as 'pending' | 'accepted' | 'rejected';
-  const statusLabel = publicRequestLabel(request.delivery_status ?? request.status, decision);
+  const queue = mode === 'sergio' ? getSergioQueue(request) : null;
+  const overdue = mode === 'sergio' && decision === 'accepted' && isOverdueDueDate(request.committed_due_date);
+  const waitingLong = mode === 'sergio' && decision === 'pending' && isWaitingTooLong(request.created_at);
+
+  const statusLabel =
+    mode === 'sergio' && decision === 'accepted'
+      ? deliveryStatusLabel(request.delivery_status ?? request.status)
+      : mode === 'client'
+        ? clientRequestLabel(request.delivery_status ?? request.status, decision)
+        : publicRequestLabel(request.delivery_status ?? request.status, decision);
+
   const pending = isRequestPending(request) && decision !== 'rejected';
   const href = detailHref ?? `/mis-pedidos/${request.id}`;
 
+  const borderAccent =
+    mode === 'sergio'
+      ? queue === 'needs_accept'
+        ? 'border-l-signal'
+        : overdue
+          ? 'border-l-destructive'
+          : queue === 'active'
+            ? 'border-l-primary'
+            : queue === 'rejected'
+              ? 'border-l-muted-foreground/40'
+              : 'border-l-radar/50'
+      : pending
+        ? 'border-l-primary'
+        : '';
+
   return (
-    <Link href={href} className="block group">
-      <Card className={cn(
-        'relative overflow-hidden glass-card transition-all duration-200',
+    <Card
+      className={cn(
+        'relative overflow-hidden glass-card transition-all duration-200 group/card',
         'hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5',
-        pending && 'border-l-[3px] border-l-primary'
-      )}>
+        borderAccent && `border-l-[3px] ${borderAccent}`,
+        overdue && 'ring-1 ring-destructive/20'
+      )}
+    >
+      <Link href={href} className="block">
         <CardContent className="py-4 pl-4">
           <div className="flex items-start gap-3">
             {(request.requester_name || request.requester_email) && (
@@ -75,9 +114,19 @@ export function RequestCard({
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
+                  {request.reference_code && (
+                    <p className="text-[10px] font-mono text-primary/90 mb-1 pl-3.5 tracking-wide">
+                      {request.reference_code}
+                    </p>
+                  )}
                   <div className="flex items-center gap-2">
-                    <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', priorityDot[request.priority] ?? 'bg-muted-foreground')} />
-                    <p className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
+                    <span
+                      className={cn(
+                        'h-1.5 w-1.5 rounded-full shrink-0',
+                        priorityDot[request.priority] ?? 'bg-muted-foreground'
+                      )}
+                    />
+                    <p className="font-medium text-sm line-clamp-2 group-hover/card:text-primary transition-colors">
                       {request.title}
                     </p>
                   </div>
@@ -88,35 +137,83 @@ export function RequestCard({
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0 flex-col items-end">
-                  {decision === 'pending' && (
+                  {mode === 'sergio' && decision === 'pending' && (
                     <Badge variant="outline" className="text-[9px] border-signal/40 text-signal">
-                      Por aceptar
+                      Falta tu respuesta
                     </Badge>
                   )}
-                  <Badge variant={pending ? 'default' : 'secondary'} className="text-[10px]">
+                  {mode === 'sergio' && decision === 'rejected' && (
+                    <Badge variant="outline" className="text-[9px] border-muted-foreground/40">
+                      Rechazado
+                    </Badge>
+                  )}
+                  {mode === 'client' && decision === 'pending' && (
+                    <Badge variant="outline" className="text-[9px] border-signal/40 text-signal">
+                      Lo reviso
+                    </Badge>
+                  )}
+                  <Badge
+                    variant={
+                      decision === 'rejected' || !pending ? 'secondary' : 'default'
+                    }
+                    className="text-[10px]"
+                  >
                     {statusLabel}
                   </Badge>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover/card:opacity-100 transition-opacity" />
                 </div>
               </div>
-              <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
+
+              <div className="mt-3 text-xs text-muted-foreground leading-relaxed">
+                <span className="inline-flex items-center gap-1">
+                  <Clock className="h-3 w-3 shrink-0" />
                   {formatDistanceToNow(new Date(request.created_at), { addSuffix: true, locale: es })}
                 </span>
-                <span className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-[10px] font-normal">
-                    {priorityLabels[request.priority] ?? request.priority}
-                  </Badge>
-                  {request.external_url && (
-                    <ExternalLink className="h-3 w-3 text-primary" />
-                  )}
+                <span className="mx-1.5 text-border">·</span>
+                <span className="font-medium text-foreground/80">
+                  {priorityLabels[request.priority] ?? request.priority}
                 </span>
+                {mode === 'sergio' && request.committed_due_date && decision === 'accepted' && (
+                  <>
+                    <span className="mx-1.5 text-border">·</span>
+                    <span
+                      className={cn(
+                        'inline-flex items-center gap-1',
+                        overdue ? 'text-destructive font-medium' : ''
+                      )}
+                    >
+                      {overdue ? (
+                        <AlertTriangle className="h-3 w-3 shrink-0" />
+                      ) : (
+                        <Calendar className="h-3 w-3 shrink-0" />
+                      )}
+                      {overdue ? 'Venció' : 'Entrega'}{' '}
+                      {format(new Date(request.committed_due_date), 'd MMM', { locale: es })}
+                    </span>
+                  </>
+                )}
+                {waitingLong && (
+                  <>
+                    <span className="mx-1.5 text-border">·</span>
+                    <span className="text-signal font-medium">más de 24 h esperando</span>
+                  </>
+                )}
+                {request.external_url && (
+                  <>
+                    <span className="mx-1.5 text-border">·</span>
+                    <ExternalLink className="h-3 w-3 inline text-primary align-text-bottom" />
+                  </>
+                )}
               </div>
             </div>
           </div>
         </CardContent>
-      </Card>
-    </Link>
+      </Link>
+      {mode === 'client' && pending && (
+        <div className="px-4 pb-3 -mt-1">
+          <MisPedidosAiEntry variant="compact" requestId={request.id} />
+        </div>
+      )}
+    </Card>
   );
 }

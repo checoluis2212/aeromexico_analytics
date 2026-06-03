@@ -82,6 +82,7 @@ export async function POST(
         title: `Nuevo mensaje en: ${reqRow.title}`,
         message: `${author}: ${body.content.slice(0, 120)}${body.content.length > 120 ? '…' : ''}`,
         link: `${siteUrl}/mis-pedidos/${id}`,
+        clientEvent: 'comment',
       });
     } else {
       await notifyRequestUpdate({
@@ -116,6 +117,27 @@ export async function GET(
     .single();
 
   const internal = hasInternalAccess(profile);
+
+  if (!internal) {
+    const admin = createAdminClient();
+    const { data: reqRow } = await admin
+      .from('requests')
+      .select('id, user_id, requester_email')
+      .eq('id', id)
+      .single();
+
+    if (!reqRow) {
+      return NextResponse.json({ error: 'Pedido no encontrado' }, { status: 404 });
+    }
+
+    const email = profile?.email ?? user.email;
+    const owns =
+      reqRow.user_id === user.id ||
+      reqRow.requester_email.toLowerCase() === email?.toLowerCase();
+    if (!owns) {
+      return NextResponse.json({ error: 'Sin acceso' }, { status: 403 });
+    }
+  }
 
   let query = supabase
     .from('request_comments')

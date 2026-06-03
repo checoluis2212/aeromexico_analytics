@@ -1,10 +1,12 @@
+import { pedirHubHref } from '@/lib/ai/assistant-modes';
+
 export const siteConfig = {
   name: 'Sergio Burgos',
   tagline: 'Analytics & Métricas · Aeroméxico',
   role: 'Analytics Metrics Specialist',
   org: 'Aeroméxico',
   description:
-    'Te ayudo con analytics y métricas: dashboards, eventos, embudos y datos para Growth, Marketing, Producto y más equipos en Aeroméxico.',
+    'Portal de Sergio Burgos en Aeroméxico: pedir trabajo de analytics, ver tu cola y consultar datos con el AI Agent.',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://workingwithsergio.com',
   author: 'Sergio Burgos',
   email: 'luissergio.mkt@gmail.com',
@@ -26,13 +28,62 @@ export const navPrimary = [
 
 /** Recursos — menú desplegable */
 export const navResources = [
-  { href: '/playbooks', label: 'Playbooks', hint: 'Guías paso a paso' },
-  { href: '/knowledge-base', label: 'Conocimiento', hint: 'Artículos y referencias' },
   { href: '/event-catalog', label: 'Eventos GA4', hint: 'Qué medimos' },
+  { href: '/glosario', label: 'Glosario', hint: 'Definiciones GA4 y GTM' },
+  { href: '/faq', label: 'FAQ', hint: 'Preguntas frecuentes' },
   { href: '/analytics-os', label: 'Analytics OS', hint: 'Framework completo', badge: 'Premium' },
   { href: '/ai-insights', label: 'Insights con IA', hint: 'Sube un CSV y analiza' },
   { href: '/contact', label: 'Contacto', hint: 'Escríbeme directo' },
 ];
+
+/** Rutas con barra lateral para clientes autenticados */
+/** Rutas del portal cliente: mantienen sidebar y cabecera compacta. */
+export const clientAreaPrefixes = [
+  '/mis-pedidos',
+  '/pedir',
+  '/perfil',
+  '/preguntale',
+  '/ai-agent',
+  '/working-with-me',
+  '/event-catalog',
+  '/faq',
+  '/glosario',
+] as const;
+
+/** Navegación lateral — portal cliente (pedidos) */
+export const clientNavPrimary = [
+  { href: '/mis-pedidos', label: 'Mis pedidos', icon: 'Inbox', hint: 'Estado y seguimiento' },
+  {
+    href: '/mis-pedidos/archivo',
+    label: 'Mis entregas',
+    icon: 'FolderArchive',
+    hint: 'Dashboards y videos archivados',
+  },
+  {
+    href: '/ai-agent',
+    label: 'AI Agent',
+    icon: 'Sparkles',
+    hint: 'Insights con datos de negocio',
+    badge: 'IA',
+    featured: true,
+    matchPaths: ['/ai-agent'],
+  },
+  {
+    href: pedirHubHref(),
+    label: 'Pedir trabajo',
+    icon: 'PlusCircle',
+    hint: 'Formulario de solicitud',
+    matchPaths: ['/pedir', '/preguntale'],
+  },
+  { href: '/working-with-me', label: 'Cómo trabajo', icon: 'BookOpen', hint: 'Tiempos y colaboración' },
+  { href: '/perfil', label: 'Mi perfil', icon: 'User', hint: 'Tu cuenta' },
+] as const;
+
+export const clientNavResources = [
+  { href: '/event-catalog', label: 'Eventos GA4', hint: 'Qué medimos' },
+  { href: '/faq', label: 'FAQ', hint: 'Preguntas frecuentes' },
+  { href: '/glosario', label: 'Glosario', hint: 'Definiciones GA4 y GTM' },
+] as const;
 
 /** @deprecated Usar navPrimary + navResources */
 export const navItems = [
@@ -41,10 +92,11 @@ export const navItems = [
   { href: '/analytics-os', label: 'Analytics OS', badge: 'Premium' },
 ];
 
+/** Acceso rápido — footer y enlaces cruzados */
 export const hubNavItems = [
-  { href: '/request-center', label: 'Pedir a Sergio' },
-  { href: '/command-center/executive', label: 'Centro Analytics' },
-  { href: '/hub', label: 'Hub interno' },
+  { href: pedirHubHref(), label: 'Pedir trabajo' },
+  { href: '/mis-pedidos', label: 'Mis pedidos' },
+  { href: '/working-with-me', label: 'Cómo trabajo' },
 ];
 
 /** Áreas comunes en Aeroméxico */
@@ -79,65 +131,89 @@ export const requestTypes = [
 export const services = [
   {
     title: 'Apoyo a Growth',
-    description: 'Ayudo al equipo de Growth con KPIs, conversión, adquisición y dashboards — yo no ejecuto growth, les doy la medición confiable.',
+    description: 'Acompaño al equipo de Growth con KPIs, conversión, adquisición y dashboards. Yo no ejecuto growth: me enfoco en que la medición sea confiable.',
     icon: 'Target',
   },
   {
     title: 'GA4 — Aeroméxico',
-    description: 'Eventos, conversiones y propiedades GA4. Validación en DebugView y documentación en el catálogo.',
+    description: 'Eventos, conversiones y configuración de GA4. Lo validamos en DebugView y lo dejamos documentado para que no se pierda.',
     icon: 'BarChart3',
   },
   {
     title: 'GTM & Data Layer',
-    description: 'Tags, triggers y variables sobre los data layers específicos de Aeroméxico (web, app, e-commerce). Consent Mode y QA en Preview.',
+    description: 'Tags, triggers y variables sobre los data layers de Aeroméxico (web, app, e-commerce). Revisamos Consent Mode y hacemos QA en Preview.',
     icon: 'Code2',
   },
   {
     title: 'BigQuery',
-    description: 'Export GA4 → BigQuery, queries, marts y datasets para análisis avanzado del negocio aéreo y digital.',
+    description: 'Export de GA4 a BigQuery, queries y datasets para que puedas responder preguntas reales del negocio (sin volarte con “data science”).',
     icon: 'Database',
   },
   {
     title: 'Looker Studio & Reporting',
-    description: 'Dashboards ejecutivos y operativos conectados a GA4 y BigQuery para marketing, producto y liderazgo.',
+    description: 'Dashboards y reportes conectados a GA4 y BigQuery para marketing, producto y liderazgo. Claros, útiles y fáciles de mantener.',
     icon: 'BarChart3',
   },
   {
     title: 'QA & Gobernanza',
-    description: 'Auditorías post-deploy, reconciliación de datos y estándares de naming en el program de medición.',
+    description: 'Auditorías post-deploy, reconciliación de datos y reglas simples de naming. Lo importante: que los números cuadren y todos hablen el mismo idioma.',
     icon: 'ShieldCheck',
   },
   {
-    title: 'Mentoria al equipo',
-    description: 'Sesiones en equipo, revisión de código GTM/dataLayer, documentación y handoff para que el equipo crezca con autonomía.',
+    title: 'Revisión',
+    description: 'Reviso tu implementación (GTM/dataLayer) y tus métricas (GA4/BigQuery). Te digo qué está bien, qué no, y qué haría yo para arreglarlo.',
     icon: 'Sparkles',
   },
 ];
 
 export const principles = [
   {
-    title: 'Datos que sirven al negocio',
-    description: 'Cada evento y dashboard debe responder una pregunta real de Aeroméxico — reservas, revenue, app, marketing.',
+    title: 'Tu decisión de negocio primero',
+    description:
+      'Vengas de E-commerce, Marketing, Producto o Growth: empezamos por qué necesitas el dato (conversión, revenue, embudo, campaña). La medición técnica viene después.',
   },
   {
-    title: 'Data layers como fuente de verdad',
-    description: 'Medimos desde los data layers corporativos. GTM y GA4 reflejan lo que el producto ya expone, no al revés.',
+    title: 'Yo mantengo el data layer',
+    description:
+      'El data layer de Aeroméxico (web, app, checkout) lo cuido yo. GTM y GA4 se apoyan ahí. Tú no tienes que construirlo — cuéntame qué quieres medir.',
   },
   {
-    title: 'Documentar mientras construimos',
-    description: 'Catálogo de eventos, playbooks y guías actualizados para que el equipo no dependa de memoria.',
+    title: 'Catálogo para toda la empresa',
+    description:
+      'Eventos y cambios quedan en el catálogo. Cualquier área puede ver qué existe y qué significa, sin depender de chats o memoria.',
   },
   {
-    title: 'Aprender haciendo',
-    description: 'El equipo no solo observa: implementa con revisión, gana autonomía y entiende el porqué de cada decisión.',
+    title: 'Medición al ritmo de tu área',
+    description:
+      'Si E-commerce, Producto o App lanzan un flujo nuevo, lo alineamos antes o junto al deploy. Así el dato sale cuando lo necesitas, no días después.',
   },
 ];
 
 export const slas = [
-  { priority: 'Urgente', response: 'En 2 horas', resolution: 'En 24 horas', description: 'Algo se rompió en producción o los números ejecutivos están mal' },
-  { priority: 'Importante', response: 'En 4 horas', resolution: 'En 2 días', description: 'Tracking caído en un flujo clave o un dashboard sin datos' },
-  { priority: 'Normal', response: 'En 1 día', resolution: 'En 1 semana', description: 'Nuevo dashboard, evento o mejora planificada' },
-  { priority: 'Sin prisa', response: 'En 2 días', resolution: 'En 2 semanas', description: 'Consultas, documentación o ajustes menores' },
+  {
+    priority: 'Urgente',
+    responseMax: '2 h',
+    deliveryMax: '24 h',
+    description: 'Algo se rompió en producción o un número importante no cuadra.',
+  },
+  {
+    priority: 'Importante',
+    responseMax: '4 h',
+    deliveryMax: '2 días',
+    description: 'Riesgo en un flujo clave o un dashboard sin datos.',
+  },
+  {
+    priority: 'Normal',
+    responseMax: '1 día',
+    deliveryMax: '1 semana',
+    description: 'Dashboard nuevo, evento o mejora planificada.',
+  },
+  {
+    priority: 'Sin prisa',
+    responseMax: '2 días',
+    deliveryMax: '2 semanas',
+    description: 'Ajustes menores, consultas o documentación.',
+  },
 ];
 
 export const playbookCategories = [

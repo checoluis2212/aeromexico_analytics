@@ -1,6 +1,11 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { getPostLoginPath, canAccessCommandCenter, isSergioAdmin, isSergioOnlyRoute } from '@/lib/auth/access';
+import {
+  ADMIN_AGENT_PATH,
+  CLIENT_PORTAL_PREVIEW_PARAM,
+  CLIENT_PORTAL_PREVIEW_VALUE,
+} from '@/lib/ai/agent-scope';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -27,7 +32,7 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
-  const authRequiredPaths = ['/hub', '/command-center', '/mis-pedidos'];
+  const authRequiredPaths = ['/command-center', '/mis-pedidos', '/pedir', '/preguntale', '/perfil'];
   const needsAuth = authRequiredPaths.some((path) => pathname.startsWith(path));
 
   if (needsAuth && !user) {
@@ -37,7 +42,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && (pathname.startsWith('/hub') || pathname.startsWith('/command-center'))) {
+  if (user && pathname.startsWith('/command-center')) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role, acc_role, email')
@@ -54,6 +59,24 @@ export async function updateSession(request: NextRequest) {
       const url = request.nextUrl.clone();
       url.pathname = '/command-center/executive';
       return NextResponse.redirect(url);
+    }
+  }
+
+  if (user && pathname === '/ai-agent') {
+    const vista = request.nextUrl.searchParams.get(CLIENT_PORTAL_PREVIEW_PARAM);
+    if (vista !== CLIENT_PORTAL_PREVIEW_VALUE) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, acc_role, email')
+        .eq('id', user.id)
+        .single();
+
+      if (isSergioAdmin(profile)) {
+        const url = request.nextUrl.clone();
+        url.pathname = ADMIN_AGENT_PATH;
+        url.search = '';
+        return NextResponse.redirect(url);
+      }
     }
   }
 

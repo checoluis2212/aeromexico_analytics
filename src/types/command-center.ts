@@ -89,22 +89,22 @@ export const MATURITY_DIMENSIONS = [
   'Experimentation', 'Self-Service', 'Documentation',
 ];
 
-/** Panel Sergio — operación diaria */
+/** Panel Sergio — operación diaria (ver lib/command-center/nav.ts) */
 export const SERGIO_NAV_PRIMARY = [
   { href: '/command-center/admin', label: 'Mi panel', hint: 'Cola, semáforo, urgentes', icon: 'Home' },
   { href: '/command-center/pedidos', label: 'Bandeja', hint: 'Aceptar y gestionar', icon: 'Inbox' },
   { href: '/command-center/board', label: 'Tablero', hint: 'Avance por estado', icon: 'Columns3' },
-  { href: '/command-center/executive', label: 'KPIs', hint: 'Negocio + operación', icon: 'BarChart3' },
+  { href: '/command-center/looker-dashboards', label: 'Looker Studio', hint: 'Biblioteca de dashboards', icon: 'PieChart' },
+  { href: '/command-center/gtm-videos', label: 'GTM Debug', hint: 'Videos testigo', icon: 'Video' },
   { href: '/command-center/events', label: 'Eventos', hint: 'Salud GA4/GTM', icon: 'Zap' },
-  { href: '/command-center/copilot', label: 'Copilot', hint: 'Asistente IA', icon: 'MessageCircle' },
+  { href: '/command-center/usuarios', label: 'Usuarios', hint: 'Roles y accesos', icon: 'Users' },
 ];
 
-/** Stakeholders — solo consulta */
+/** Stakeholders — default; la sidebar usa getStakeholderNav(acc_role) */
 export const STAKEHOLDER_NAV_PRIMARY = [
-  { href: '/command-center/executive', label: 'Resumen', hint: 'KPIs y confianza en datos', icon: 'Home' },
+  { href: '/command-center/executive', label: 'Resumen', hint: 'KPIs del negocio', icon: 'Home' },
+  { href: '/command-center/board', label: 'Avance', hint: 'Pedidos abiertos', icon: 'Columns3' },
   { href: '/command-center/reports', label: 'Reportes', hint: 'Dashboards publicados', icon: 'BarChart3' },
-  { href: '/command-center/board', label: 'Avance', hint: 'En qué estamos', icon: 'Columns3' },
-  { href: '/command-center/copilot', label: 'Pregúntale', hint: 'Asistente con IA', icon: 'MessageCircle' },
 ];
 
 /** @deprecated Usar SERGIO_NAV o STAKEHOLDER_NAV */
@@ -114,14 +114,13 @@ export const ACC_NAV_PRIMARY = [
   { href: '/command-center/requests', label: 'Pedir a Sergio', hint: 'Pide lo que quieras', icon: 'PlusCircle' },
   { href: '/command-center/reports', label: 'Reportes', hint: 'Encuentra tus datos', icon: 'BarChart3' },
   { href: '/command-center/board', label: 'Avance', hint: 'En qué estamos', icon: 'Columns3' },
-  { href: '/command-center/copilot', label: 'Pregúntale', hint: 'Asistente con IA', icon: 'MessageCircle' },
+  { href: '/preguntale', label: 'Pedido con IA', hint: 'Wizard guiado', icon: 'Sparkles' },
 ];
 
-/** Recursos secundarios — accesibles desde /resources */
+/** @deprecated Páginas secundarias — enlazadas desde Resumen, Eventos o Reportes */
 export const ACC_NAV_RESOURCES = [
   { href: '/command-center/events', label: 'Eventos', hint: 'Qué medimos en web y app', icon: 'Zap' },
   { href: '/command-center/dictionary', label: 'Glosario', hint: 'Qué significa cada métrica', icon: 'BookOpen' },
-  { href: '/command-center/knowledge', label: 'Guías', hint: 'Cómo hacemos las cosas', icon: 'Library' },
   { href: '/command-center/maturity', label: 'Salud del programa', hint: 'Fortalezas y riesgos', icon: 'TrendingUp' },
   { href: '/command-center/value', label: 'Nuestro impacto', hint: 'Valor que generamos', icon: 'Award' },
   { href: '/command-center/workspace', label: 'Mi espacio', hint: 'Para el equipo Analytics', icon: 'User' },
@@ -197,5 +196,7 @@ export interface Sprint {
 export interface CopilotMessage {
   role: 'user' | 'assistant';
   content: string;
+  /** Texto completo enviado al API (p. ej. mensaje de escenario vs título visible) */
+  apiContent?: string;
   timestamp?: string;
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { requireInternalAccess } from '@/lib/auth/require-api-session';
 import type { DeliveryStatus } from '@/types/command-center';
 
 const VALID_STATUSES: DeliveryStatus[] = [
@@ -19,12 +19,11 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
   }
 
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const session = await requireInternalAccess();
+  if (session instanceof NextResponse) return session;
 
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const supabase = session.supabase;
+  const user = session.user;
 
   const { data, error } = await supabase
     .from('requests')

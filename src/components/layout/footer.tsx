@@ -1,11 +1,13 @@
+'use client';
+
 import Link from 'next/link';
-import { siteConfig, navPrimary, navResources, hubNavItems, analyticsStack } from '@/lib/constants';
+import { siteConfig, navPrimary, hubNavItems, analyticsStack } from '@/lib/constants';
 import { Radar } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/60 bg-card/30">
+    <footer className="border-t border-border/40 bg-card/20 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           <div className="md:col-span-1">
@@ -35,7 +37,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Acceso rápido</h4>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Pedidos</h4>
             <ul className="space-y-2.5">
               {hubNavItems.map((item) => (
                 <li key={item.href}>

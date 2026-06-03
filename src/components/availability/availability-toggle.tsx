@@ -4,11 +4,16 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { CAPACITY_CONFIG, type SergioAvailability, type SergioCapacity } from '@/lib/availability-config';
+import {
+  CAPACITY_CONFIG,
+  CAPACITY_ORDER,
+  type SergioAvailability,
+  type SergioCapacity,
+} from '@/lib/availability-config';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 
-const OPTIONS: SergioCapacity[] = ['available', 'limited', 'full'];
+const OPTIONS: SergioCapacity[] = [...CAPACITY_ORDER];
 
 type Props = {
   initial: SergioAvailability;
@@ -61,7 +66,11 @@ export function AvailabilityToggle({ initial }: Props) {
               size="sm"
               variant={active ? 'default' : 'outline'}
               disabled={saving}
-              className={cn('h-9 gap-2', active && key === 'available' && 'bg-radar hover:bg-radar/90')}
+              className={cn(
+                'h-9 gap-2',
+                active && key === 'available' && 'bg-radar hover:bg-radar/90',
+                active && key === 'oof' && 'bg-muted-foreground hover:bg-muted-foreground/90 text-background'
+              )}
               onClick={() => save(key)}
             >
               <span

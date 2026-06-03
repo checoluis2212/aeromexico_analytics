@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { CommandCenterTopBar } from '@/components/command-center/top-bar';
+import { CommandCenterPageContent } from '@/components/command-center/command-center-page-content';
 import { KpiSection } from '@/components/command-center/kpi-section';
 import { EventHealthPanel, ReportsPanel } from '@/components/command-center/executive-panels';
 import { BusinessMetricsPanel } from '@/components/command-center/business-metrics-panel';
@@ -155,11 +156,11 @@ export default async function ExecutiveDashboardPage() {
   return (
     <>
       <CommandCenterTopBar
-        title="Resumen Analytics"
-        subtitle="KPIs para el negocio y operación del equipo"
+        title="Resumen"
+        subtitle="Cómo va el negocio y la operación del equipo"
       />
 
-      <div className="p-5 space-y-5 max-w-6xl">
+      <CommandCenterPageContent className="space-y-6">
         <div className="rounded-xl border border-border/50 glass-card p-5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -191,16 +192,16 @@ export default async function ExecutiveDashboardPage() {
         </div>
 
         <KpiSection
-          title="Para el cliente"
-          subtitle="¿Puedo confiar en los datos y ver avance de mis pedidos?"
+          title="Para quien pide"
+          subtitle="¿Puedo confiar en los datos y ver avance?"
           kpis={clientKpiItems}
           accent="client"
         />
 
         {sergioView && (
           <KpiSection
-            title="Para Sergio"
-            subtitle="Tu radar diario — cola, urgencias y entregas"
+            title="Para mí"
+            subtitle="Urgencias, cola y entregas del mes"
             kpis={sergioKpiItems}
             accent="sergio"
           />
@@ -223,8 +224,8 @@ export default async function ExecutiveDashboardPage() {
 
         <Card className="glass-card border-border/60">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">En qué estamos trabajando</CardTitle>
-            <p className="text-xs text-muted-foreground">Pedidos activos — visible para stakeholders</p>
+            <CardTitle className="text-base">Pedidos activos</CardTitle>
+            <p className="text-xs text-muted-foreground">Lo que está en curso ahora mismo</p>
           </CardHeader>
           <CardContent className="space-y-2">
             {(inProgress ?? []).length > 0 ? (
@@ -248,15 +249,24 @@ export default async function ExecutiveDashboardPage() {
             ) : (
               <p className="text-sm text-muted-foreground py-6 text-center">
                 No hay pedidos activos.{' '}
-                <Link href="/request-center" className="text-primary hover:underline">
-                  Pedir a Sergio
+                <Link href="/pedir" className="text-primary hover:underline">
+                  Pedir con IA
                 </Link>
               </p>
             )}
             {sergioView && <SergioQuickActions />}
           </CardContent>
         </Card>
-      </div>
+
+        <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
+          <Link href="/command-center/reports" className="text-primary hover:underline">
+            Reportes publicados
+          </Link>
+          <Link href="/glosario" className="text-primary hover:underline">
+            Glosario de métricas
+          </Link>
+        </div>
+      </CommandCenterPageContent>
     </>
   );
 }

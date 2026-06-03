@@ -3,11 +3,13 @@ import { syncFromTrelloCard } from '@/lib/integrations/external-sync';
 
 export async function POST(request: NextRequest) {
   const secret = process.env.TRELLO_WEBHOOK_SECRET;
-  if (secret) {
-    const header = request.headers.get('x-trello-webhook-secret');
-    if (header !== secret) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  if (!secret) {
+    return NextResponse.json({ error: 'Webhook not configured' }, { status: 503 });
+  }
+
+  const header = request.headers.get('x-trello-webhook-secret');
+  if (header !== secret) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {

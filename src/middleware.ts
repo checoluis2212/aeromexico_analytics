@@ -6,5 +6,13 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/hub/:path*', '/command-center/:path*', '/login'],
+  matcher: [
+    '/command-center/:path*',
+    '/mis-pedidos/:path*',
+    '/pedir',
+    '/preguntale',
+    '/ai-agent',
+    '/perfil/:path*',
+    '/login',
+  ],
 };

@@ -1,26 +1,30 @@
 'use client';
 
-import { AuthButton } from '@/components/auth/auth-button';
-import { NotificationBell } from '@/components/command-center/notification-bell';
+import { commandCenterContentClass } from '@/lib/layout/command-center';
+import { cn } from '@/lib/utils';
 
 interface TopBarProps {
   title: string;
   subtitle?: string;
+  className?: string;
 }
 
-export function CommandCenterTopBar({ title, subtitle }: TopBarProps) {
+export function CommandCenterTopBar({ title, subtitle, className }: TopBarProps) {
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-4 border-b border-border/40 bg-background/90 backdrop-blur-md px-5">
-      <div className="min-w-0">
-        <h1 className="text-base font-semibold tracking-tight truncate">{title}</h1>
-        {subtitle && (
-          <p className="text-xs text-muted-foreground mt-0.5 truncate">{subtitle}</p>
+    <header className="app-chrome-header shrink-0 border-b border-border/40">
+      <div
+        className={cn(
+          commandCenterContentClass,
+          'flex min-h-14 flex-col justify-center py-4 sm:py-5',
+          className
         )}
-      </div>
-
-      <div className="flex items-center gap-2 shrink-0">
-        <NotificationBell />
-        <AuthButton />
+      >
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight truncate">{title}</h1>
+        {subtitle && (
+          <p className="text-sm text-muted-foreground mt-1 leading-relaxed max-w-3xl">
+            {subtitle}
+          </p>
+        )}
       </div>
     </header>
   );

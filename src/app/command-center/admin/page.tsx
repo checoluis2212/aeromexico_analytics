@@ -2,22 +2,26 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { assertSergioAdmin } from '@/lib/auth/guards';
 import { CommandCenterTopBar } from '@/components/command-center/top-bar';
+import { CommandCenterPageContent } from '@/components/command-center/command-center-page-content';
 import { AvailabilityToggle } from '@/components/availability/availability-toggle';
 import { getSergioAvailability } from '@/lib/availability';
+import { CAPACITY_CONFIG } from '@/lib/availability-config';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { priorityLabels, requestTypeLabels } from '@/lib/constants';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { SERGIO_EXTRA_NAV } from '@/lib/command-center/nav';
+import { SergioAdminExtras } from '@/components/command-center/sergio-admin-extras';
 import {
-  AlertTriangle,
   ArrowRight,
-  Calendar,
-  CheckCircle2,
+  Bot,
   Clock,
+  Database,
   Inbox,
-  Sparkles,
+  PieChart,
+  Video,
 } from 'lucide-react';
 
 export const metadata = { title: 'Mi panel' };
@@ -28,141 +32,178 @@ export default async function SergioAdminPage() {
   const supabase = await createClient();
   const availability = await getSergioAvailability();
 
-  const [{ data: pendingAccept }, { data: openRequests }, { count: urgentCount }] = await Promise.all([
-    supabase
-      .from('requests')
-      .select('id, title, type, priority, company, requester_name, created_at, sergio_decision')
-      .eq('sergio_decision', 'pending')
-      .order('created_at', { ascending: false })
-      .limit(8),
-    supabase
-      .from('requests')
-      .select('id, title, priority, delivery_status, updated_at')
-      .eq('sergio_decision', 'accepted')
-      .not('delivery_status', 'in', '("done","cancelled")')
-      .order('updated_at', { ascending: false })
-      .limit(5),
-    supabase
-      .from('requests')
-      .select('*', { count: 'exact', head: true })
-      .eq('sergio_decision', 'accepted')
-      .in('priority', ['p0_critical', 'p1_high'])
-      .not('delivery_status', 'in', '("done","cancelled")'),
-  ]);
+  const { data: pending } = await supabase
+    .from('requests')
+    .select('id, title, type, priority, company, requester_name, created_at')
+    .eq('sergio_decision', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(6);
 
-  const pending = pendingAccept ?? [];
-  const active = openRequests ?? [];
+  const pendingList = pending ?? [];
+  const semaforoLabel = CAPACITY_CONFIG[availability.capacity].label;
 
   return (
     <>
       <CommandCenterTopBar
         title="Mi panel"
-        subtitle="Tu espacio de operación — cola, semáforo y decisiones"
+        subtitle="Semáforo y pedidos que esperan tu respuesta"
       />
 
-      <div className="p-5 space-y-5 max-w-5xl">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[
-            { label: 'Por aceptar', value: pending.length, icon: Sparkles, accent: pending.length > 0 ? 'text-signal' : 'text-muted-foreground' },
-            { label: 'Activos', value: active.length, icon: Inbox, accent: 'text-primary' },
-            { label: 'Urgentes', value: urgentCount ?? 0, icon: AlertTriangle, accent: (urgentCount ?? 0) > 0 ? 'text-destructive' : 'text-muted-foreground' },
-            { label: 'Semáforo', value: availability.capacity === 'available' ? 'OK' : availability.capacity === 'limited' ? 'Limitado' : 'Full', icon: CheckCircle2, accent: availability.capacity === 'available' ? 'text-radar' : 'text-signal' },
-          ].map(({ label, value, icon: Icon, accent }) => (
-            <Card key={label} className="glass-card border-border/50">
-              <CardContent className="pt-4 pb-3 flex items-center gap-3">
-                <Icon className={`h-5 w-5 shrink-0 ${accent}`} />
-                <div>
-                  <p className="text-xl font-bold tabular-nums leading-none">{value}</p>
-                  <p className="text-[11px] text-muted-foreground mt-1">{label}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
+      <CommandCenterPageContent className="space-y-6">
         <AvailabilityToggle initial={availability} />
 
-        <Card className="glass-card border-border/60">
-          <CardHeader className="pb-2 flex flex-row items-center justify-between gap-3">
-            <div>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                Pedidos por aceptar
-              </CardTitle>
-              <p className="text-xs text-muted-foreground mt-1">
-                Revisa capacidad con IA, elige fecha y acepta o rechaza.
-              </p>
-            </div>
-            <Button size="sm" variant="outline" asChild>
-              <Link href="/command-center/pedidos">
-                Ver bandeja
-                <ArrowRight className="ml-2 h-3.5 w-3.5" />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {pending.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">
-                No hay pedidos esperando tu respuesta.
-              </p>
-            ) : (
-              pending.map((r) => (
-                <Link
-                  key={r.id}
-                  href={`/command-center/pedidos/${r.id}`}
-                  className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border/40 hover:border-primary/30 hover:bg-secondary/20 transition-colors"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium line-clamp-1">{r.title}</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      {r.requester_name}
-                      {r.company ? ` · ${r.company}` : ''}
-                      {' · '}
-                      {requestTypeLabels[r.type] ?? r.type}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    <Badge variant="outline" className="text-[10px] border-signal/40 text-signal">
-                      {priorityLabels[r.priority] ?? r.priority}
-                    </Badge>
-                    <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(r.created_at), { addSuffix: true, locale: es })}
-                    </span>
-                  </div>
+        <Link
+          href="/command-center/agent"
+          className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/[0.06] p-4 hover:border-primary/50 transition-colors"
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary shrink-0">
+            <Bot className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">Agente IA — Command Center</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Bandeja global, solicitantes, semáforo y acciones con confirmación
+            </p>
+          </div>
+          <ArrowRight className="h-4 w-4 text-primary shrink-0" />
+        </Link>
+
+        <Card
+          className={
+            pendingList.length > 0
+              ? 'border-signal/40 bg-signal/[0.06]'
+              : 'border-border/50'
+          }
+        >
+          <CardContent className="pt-5 pb-4 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-2xl font-bold tabular-nums">{pendingList.length}</p>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {pendingList.length === 1
+                    ? 'pedido espera tu respuesta'
+                    : 'pedidos esperan tu respuesta'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Semáforo: <span className="text-foreground font-medium">{semaforoLabel}</span>
+                </p>
+              </div>
+              <Button asChild className="glow-aero shrink-0">
+                <Link href="/command-center/pedidos">
+                  Ir a pedidos
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
-              ))
+              </Button>
+            </div>
+
+            {pendingList.length > 0 ? (
+              <ul className="space-y-2 border-t border-border/40 pt-3">
+                {pendingList.map((r) => (
+                  <li key={r.id}>
+                    <Link
+                      href={`/command-center/pedidos/${r.id}`}
+                      className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border/40 hover:border-primary/30 hover:bg-secondary/20 transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium line-clamp-1">{r.title}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {r.requester_name}
+                          {r.company ? ` · ${r.company}` : ''}
+                          {' · '}
+                          {requestTypeLabels[r.type] ?? r.type}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <Badge variant="outline" className="text-[10px]">
+                          {priorityLabels[r.priority] ?? r.priority}
+                        </Badge>
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {formatDistanceToNow(new Date(r.created_at), {
+                            addSuffix: true,
+                            locale: es,
+                          })}
+                        </span>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground border-t border-border/40 pt-3">
+                No hay pedidos nuevos. Revisa la bandeja si quieres ver todo el historial.
+              </p>
             )}
           </CardContent>
         </Card>
 
-        <Card className="glass-card border-border/60">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-primary" />
-              En curso (aceptados)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {active.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">Cola vacía después de aceptar.</p>
-            ) : (
-              active.map((r) => (
+        <div>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+            Accesos rápidos
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <Link
+              href="/command-center/looker-dashboards"
+              className="flex items-center gap-3 rounded-xl border border-border/50 bg-card/30 p-4 hover:border-primary/30 transition-colors"
+            >
+              <PieChart className="h-5 w-5 text-primary shrink-0" />
+              <div>
+                <p className="text-sm font-medium">Looker</p>
+                <p className="text-[11px] text-muted-foreground">Subir dashboard</p>
+              </div>
+            </Link>
+            <Link
+              href="/command-center/gtm-videos"
+              className="flex items-center gap-3 rounded-xl border border-border/50 bg-card/30 p-4 hover:border-primary/30 transition-colors"
+            >
+              <Video className="h-5 w-5 text-primary shrink-0" />
+              <div>
+                <p className="text-sm font-medium">Videos GTM</p>
+                <p className="text-[11px] text-muted-foreground">Prueba de tags</p>
+              </div>
+            </Link>
+            <Link
+              href="/command-center/integraciones"
+              className="flex items-center gap-3 rounded-xl border border-border/50 bg-card/30 p-4 hover:border-primary/30 transition-colors"
+            >
+              <Database className="h-5 w-5 text-primary shrink-0" />
+              <div>
+                <p className="text-sm font-medium">Datos IA</p>
+                <p className="text-[11px] text-muted-foreground">BigQuery</p>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        <details className="rounded-xl border border-border/40 bg-muted/10 px-4 py-3 group">
+          <summary className="text-sm font-medium cursor-pointer list-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+            Más herramientas
+            <span className="text-xs text-muted-foreground group-open:hidden">Ver</span>
+          </summary>
+          <ul className="mt-3 space-y-1 border-t border-border/40 pt-3">
+            {SERGIO_EXTRA_NAV.map((item) => (
+              <li key={item.href}>
                 <Link
-                  key={r.id}
-                  href={`/command-center/pedidos/${r.id}`}
-                  className="block p-3 rounded-lg border border-border/40 hover:border-primary/20 text-sm"
+                  href={item.href}
+                  className="text-sm text-muted-foreground hover:text-primary py-1.5 block"
                 >
-                  <span className="font-medium line-clamp-1">{r.title}</span>
-                  <span className="text-[11px] text-muted-foreground block mt-0.5">
-                    {r.delivery_status?.replace(/_/g, ' ')}
-                  </span>
+                  {item.label}
+                  <span className="text-[11px] ml-1">— {item.hint}</span>
                 </Link>
-              ))
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              </li>
+            ))}
+            <li>
+              <Link
+                href="/command-center/executive"
+                className="text-sm text-muted-foreground hover:text-primary py-1.5 block"
+              >
+                Resumen KPIs — números del negocio
+              </Link>
+            </li>
+          </ul>
+          <SergioAdminExtras />
+        </details>
+      </CommandCenterPageContent>
     </>
   );
 }

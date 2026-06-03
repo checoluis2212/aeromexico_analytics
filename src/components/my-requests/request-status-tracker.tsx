@@ -36,7 +36,7 @@ export function RequestStatusTracker({ status }: { status: string }) {
   return (
     <div className="w-full">
       {isBlocked && (
-        <p className="text-xs text-destructive mb-3 font-medium">En pausa — te avisamos cuando retome</p>
+        <p className="text-xs text-destructive mb-3 font-medium">En pausa — te aviso cuando retome</p>
       )}
       <div className="flex items-center justify-between gap-1">
         {STEPS.map((step, i) => {

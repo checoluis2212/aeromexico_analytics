@@ -17,8 +17,9 @@ const STAKEHOLDER_ACC_ROLES = new Set([
 
 const SERGIO_ONLY_PREFIXES = [
   '/command-center/admin',
+  '/command-center/agent',
   '/command-center/pedidos',
-  '/command-center/workspace',
+  '/command-center/usuarios',
 ];
 
 /** Sergio Burgos — operación completa (aceptar pedidos, semáforo, bandeja) */
@@ -36,6 +37,7 @@ export function isSergioAdmin(profile: ProfileAccess | null): boolean {
 /** Stakeholders internos — ven resumen y reportes, no operan pedidos */
 export function isStakeholder(profile: ProfileAccess | null): boolean {
   if (!profile || isSergioAdmin(profile)) return false;
+  if (profile.role === 'client' || profile.role === 'viewer') return false;
   return STAKEHOLDER_ACC_ROLES.has(profile.acc_role ?? '');
 }
 
@@ -75,7 +77,7 @@ export function getCommandCenterHome(profile: ProfileAccess | null): string {
 }
 
 export const APP_ROLE_LABELS: Record<AppRole, string> = {
-  sergio_admin: 'Panel Sergio · Admin',
-  stakeholder: 'Centro Analytics · Lectura',
+  sergio_admin: 'Operación diaria',
+  stakeholder: 'Consulta interna',
   client: 'Mis pedidos',
 };

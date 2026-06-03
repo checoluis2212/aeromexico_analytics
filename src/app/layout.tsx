@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
 import { Roboto, Roboto_Mono } from 'next/font/google';
-import { SiteChrome } from '@/components/layout/site-chrome';
 import { Toaster } from '@/components/ui/sonner';
 import { siteConfig } from '@/lib/constants';
+import { APP_THEME } from '@/lib/theme';
 import './globals.css';
 
 const roboto = Roboto({
@@ -45,7 +44,7 @@ export default function RootLayout({
   const gaId = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
 
   return (
-    <html lang="es" className="dark">
+    <html lang="es" className="dark" data-theme={APP_THEME} suppressHydrationWarning>
       <head>
         {gtmId && (
           <script
@@ -70,7 +69,8 @@ gtag('js',new Date());gtag('config','${gaId}');`,
           </>
         )}
       </head>
-      <body className={`${roboto.variable} ${robotoMono.variable} font-sans min-h-screen flex flex-col`}>
+      <body className={`${roboto.variable} ${robotoMono.variable} theme-root font-sans min-h-screen flex flex-col`}>
+        <div aria-hidden className="theme-background" />
         {gtmId && (
           <noscript>
             <iframe
@@ -81,13 +81,7 @@ gtag('js',new Date());gtag('config','${gaId}');`,
             />
           </noscript>
         )}
-        <Suspense
-          fallback={
-            <main className="flex-1">{children}</main>
-          }
-        >
-          <SiteChrome>{children}</SiteChrome>
-        </Suspense>
+        <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
         <Toaster richColors position="top-right" />
       </body>
     </html>

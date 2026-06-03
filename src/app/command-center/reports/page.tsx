@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { CommandCenterTopBar } from '@/components/command-center/top-bar';
+import { CommandCenterPageContent } from '@/components/command-center/command-center-page-content';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { REPORT_CATEGORIES } from '@/types/command-center';
 import type { Report } from '@/types/command-center';
-import { ExternalLink, Eye, Star, MessageCircle } from 'lucide-react';
+import { ExternalLink, Eye, Star } from 'lucide-react';
 
 export const metadata = { title: 'Reportes' };
 
@@ -26,11 +27,11 @@ export default async function ReportMarketplacePage({
   return (
     <>
       <CommandCenterTopBar
-        title="Tus reportes"
-        subtitle="Abre un dashboard o pregúntale al asistente si no encuentras lo que buscas"
+        title="Reportes"
+        subtitle="Dashboards publicados — si falta algo, pídemelo"
       />
 
-      <div className="p-5 space-y-5">
+      <CommandCenterPageContent className="space-y-6">
         <div className="flex flex-wrap items-center gap-2">
           <Link href="/command-center/reports">
             <Badge variant={!category ? 'default' : 'outline'} className="cursor-pointer text-xs">Todos</Badge>
@@ -42,10 +43,9 @@ export default async function ReportMarketplacePage({
               </Badge>
             </Link>
           ))}
-          <Link href="/command-center/copilot" className="ml-auto">
-            <Button variant="outline" size="sm" className="text-xs gap-1.5 h-7">
-              <MessageCircle className="h-3.5 w-3.5" />
-              ¿No lo encuentras? Pregúntale
+          <Link href="/pedir" className="ml-auto">
+            <Button variant="outline" size="sm" className="text-xs h-7">
+              Pedir un reporte
             </Button>
           </Link>
         </div>
@@ -92,9 +92,15 @@ export default async function ReportMarketplacePage({
         </div>
 
         {(!reports || reports.length === 0) && (
-          <p className="text-center text-muted-foreground py-12">Aún no hay reportes publicados. Mientras tanto, <Link href="/command-center/copilot" className="text-primary underline">pregúntale al asistente</Link>.</p>
+          <p className="text-center text-muted-foreground py-12">
+            Aún no hay reportes publicados.{' '}
+            <Link href="/pedir" className="text-primary hover:underline">
+              Cuéntame qué necesitas
+            </Link>
+            .
+          </p>
         )}
-      </div>
+      </CommandCenterPageContent>
     </>
   );
 }

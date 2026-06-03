@@ -1,6 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface FadeInProps {
@@ -10,7 +11,19 @@ interface FadeInProps {
   direction?: 'up' | 'none';
 }
 
+/** SSR-safe: el contenido es visible antes de hidratar; luego anima si aplica. */
 export function FadeIn({ children, className, delay = 0, direction = 'up' }: FadeInProps) {
+  const reduceMotion = useReducedMotion();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setReady(true);
+  }, []);
+
+  if (!ready || reduceMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: direction === 'up' ? 12 : 0 }}
@@ -30,6 +43,17 @@ export function StaggerGrid({
   children: React.ReactNode;
   className?: string;
 }) {
+  const reduceMotion = useReducedMotion();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setReady(true);
+  }, []);
+
+  if (!ready || reduceMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       initial="hidden"
@@ -46,6 +70,17 @@ export function StaggerGrid({
 }
 
 export function StaggerItem({ children, className }: { children: React.ReactNode; className?: string }) {
+  const reduceMotion = useReducedMotion();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setReady(true);
+  }, []);
+
+  if (!ready || reduceMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       variants={{

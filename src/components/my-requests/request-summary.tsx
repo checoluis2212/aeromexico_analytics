@@ -11,22 +11,26 @@ interface RequestSummaryProps {
 
 const items = [
   { key: 'total', label: 'Total', icon: Inbox, color: 'text-foreground' },
-  { key: 'pending', label: 'Activos', icon: Loader2, color: 'text-primary' },
-  { key: 'waiting', label: 'En cola', icon: Clock, color: 'text-signal' },
+  { key: 'review', label: 'Por revisar', icon: Clock, color: 'text-signal' },
+  { key: 'active', label: 'En curso', icon: Loader2, color: 'text-primary' },
   { key: 'done', label: 'Listos', icon: CheckCircle2, color: 'text-radar' },
 ] as const;
 
 function computeStats(requests: MyRequestRow[]) {
-  let pending = 0;
-  let waiting = 0;
+  let review = 0;
+  let active = 0;
   let done = 0;
   for (const r of requests) {
-    const s = r.delivery_status ?? r.status;
-    if (s === 'backlog' || s === 'submitted') waiting++;
-    else if (isRequestPending(r)) pending++;
-    else done++;
+    const decision = r.sergio_decision ?? 'pending';
+    if (decision === 'pending') {
+      review++;
+    } else if (decision === 'rejected' || !isRequestPending(r)) {
+      done++;
+    } else {
+      active++;
+    }
   }
-  return { total: requests.length, pending, waiting, done };
+  return { total: requests.length, review, active, done };
 }
 
 export function RequestSummary({ requests, className }: RequestSummaryProps) {

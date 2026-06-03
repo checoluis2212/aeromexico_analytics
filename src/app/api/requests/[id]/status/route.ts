@@ -93,6 +93,7 @@ export async function PATCH(
     title,
     message,
     link: `${siteUrl}/mis-pedidos/${id}`,
+    clientEvent: 'status_change',
   });
 
   return NextResponse.json(data);

@@ -1,10 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { CommandCenterTopBar } from '@/components/command-center/top-bar';
+import { CommandCenterPageContent } from '@/components/command-center/command-center-page-content';
 import { DeliveryBoardClient } from '@/components/command-center/delivery-board-client';
 import type { BoardItem } from '@/components/command-center/kanban-board';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import type { DeliveryStatus } from '@/types/command-center';
+import { isSergioAdmin } from '@/lib/auth/access';
 
 export const metadata = { title: 'Avance' };
 
@@ -22,8 +24,17 @@ const FALLBACK_ITEMS: BoardItem[] = [
 export default async function DeliveryBoardPage() {
   const supabase = await createClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = user
+    ? await supabase.from('profiles').select('role, acc_role, email').eq('id', user.id).single()
+    : { data: null };
+  const canEdit = isSergioAdmin(profile);
+
   const [{ data: requests }, { data: sprint }] = await Promise.all([
-    supabase.from('requests').select('id, title, type, priority, story_points, delivery_status').order('created_at', { ascending: false }),
+    supabase
+      .from('requests')
+      .select('id, title, type, priority, story_points, delivery_status, company')
+      .order('created_at', { ascending: false }),
     supabase.from('sprints').select('*').eq('is_active', true).single(),
   ]);
 
@@ -34,9 +45,12 @@ export default async function DeliveryBoardPage() {
         type: r.type,
         priority: r.priority,
         storyPoints: r.story_points ?? undefined,
+        company: r.company,
         status: (r.delivery_status ?? 'backlog') as DeliveryStatus,
       }))
     : FALLBACK_ITEMS;
+
+  const areas = [...new Set(boardItems.map((i) => i.company).filter(Boolean))] as string[];
 
   const usedPoints = boardItems
     .filter((i) => !['done', 'backlog'].includes(i.status))
@@ -45,11 +59,15 @@ export default async function DeliveryBoardPage() {
   return (
     <>
       <CommandCenterTopBar
-        title="¿En qué estamos?"
-        subtitle="Arrastra las tarjetas para ver el estado — sin complicaciones"
+        title="Avance"
+        subtitle={
+          canEdit
+            ? 'Arrastra las tarjetas para actualizar el estado'
+            : 'Vista de avance — solo lectura'
+        }
       />
 
-      <div className="p-5">
+      <CommandCenterPageContent>
         <div className="flex flex-wrap gap-3 mb-5">
           <Card className="bg-card/30 border-border/40">
             <CardContent className="py-2.5 px-4 flex items-center gap-5">
@@ -71,8 +89,12 @@ export default async function DeliveryBoardPage() {
           </Card>
         </div>
 
-        <DeliveryBoardClient initialItems={boardItems} />
-      </div>
+        <DeliveryBoardClient
+          initialItems={boardItems}
+          readOnly={!canEdit}
+          areas={areas}
+        />
+      </CommandCenterPageContent>
     </>
   );
 }

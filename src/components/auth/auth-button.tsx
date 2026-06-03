@@ -88,9 +88,9 @@ export function AuthButton() {
           )}
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer" onClick={() => router.push('/mis-pedidos')}>
+        <DropdownMenuItem className="cursor-pointer" onClick={() => router.push(appRole === 'sergio_admin' ? '/command-center/pedidos' : '/mis-pedidos')}>
           <Inbox className="mr-2 h-4 w-4" />
-          Mis pedidos
+          {appRole === 'sergio_admin' ? 'Bandeja de pedidos' : 'Mis pedidos'}
         </DropdownMenuItem>
         {ccHome && (
           <DropdownMenuItem className="cursor-pointer" onClick={() => router.push(ccHome)}>
@@ -102,7 +102,7 @@ export function AuthButton() {
             {appRole === 'sergio_admin' ? 'Panel Sergio' : 'Centro Analytics'}
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem disabled>
+        <DropdownMenuItem className="cursor-pointer" onClick={() => router.push('/perfil')}>
           <User className="mr-2 h-4 w-4" />
           Mi perfil
         </DropdownMenuItem>

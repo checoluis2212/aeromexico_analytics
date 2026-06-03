@@ -173,6 +173,17 @@ export async function syncFromTrelloCard(cardId: string): Promise<boolean> {
   const deliveryStatus = TRELLO_LIST_TO_STATUS[listId];
 
   const supabase = createAdminClient();
+
+  const { data: existing } = await supabase
+    .from('requests')
+    .select('id, title, reference_code, delivery_status, requester_email, user_id, requester_name')
+    .eq('external_provider', 'trello')
+    .eq('external_id', cardId)
+    .maybeSingle();
+
+  if (!existing) return false;
+
+  const oldStatus = existing.delivery_status ?? 'backlog';
   const update: Record<string, string> = {
     external_status: listId,
     updated_at: new Date().toISOString(),
@@ -181,30 +192,63 @@ export async function syncFromTrelloCard(cardId: string): Promise<boolean> {
     update.delivery_status = deliveryStatus;
   }
 
-  const { error } = await supabase
-    .from('requests')
-    .update(update)
-    .eq('external_provider', 'trello')
-    .eq('external_id', cardId);
+  const { error } = await supabase.from('requests').update(update).eq('id', existing.id);
 
-  return !error;
+  if (error) return false;
+
+  if (deliveryStatus && deliveryStatus !== oldStatus) {
+    const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+    const link = `${base}/mis-pedidos/${existing.id}`;
+    const fromLabel = mapDeliveryStatusForUser(oldStatus);
+    const toLabel = mapDeliveryStatusForUser(deliveryStatus);
+
+    const { notifyWorkflowStep } = await import('@/lib/notifications/workflow-notify');
+    const { notifyRequestUpdate } = await import('@/lib/notifications/request-notify');
+
+    await notifyWorkflowStep({
+      step: 'status_synced',
+      requestId: existing.id,
+      reference_code: existing.reference_code,
+      title: existing.title,
+      requester_name: existing.requester_name,
+      message: `Sync Trello: el pedido pasó de "${fromLabel}" a "${toLabel}" automáticamente.`,
+      facts: {
+        Origen: fromLabel,
+        Destino: toLabel,
+        Integración: 'Trello',
+      },
+      internalLink: true,
+    });
+
+    await notifyRequestUpdate({
+      requestId: existing.id,
+      requesterEmail: existing.requester_email,
+      requesterUserId: existing.user_id,
+      title: `Actualización: ${existing.title}`,
+      message: `Tu pedido avanzó de "${fromLabel}" a "${toLabel}".`,
+      link,
+      clientEvent: 'status_change',
+    });
+  }
+
+  return true;
 }
 
 export function mapDeliveryStatusForUser(status: string | null): string {
   const labels: Record<string, string> = {
     backlog: 'Recibido',
-    discovery: 'Entendiendo tu pedido',
-    requirements: 'Definiendo alcance',
-    ready_for_development: 'Listo para empezar',
+    discovery: 'Viendo el alcance',
+    requirements: 'Afinando alcance',
+    ready_for_development: 'Listo para arrancar',
     development: 'En progreso',
-    analytics_qa: 'Revisando',
+    analytics_qa: 'Revisando datos',
     ready_for_release: 'Casi listo',
-    done: 'Completado',
+    done: 'Listo',
     blocked: 'En pausa',
     submitted: 'Recibido',
-    in_review: 'En revisión',
+    in_review: 'Lo estoy revisando',
     in_progress: 'En progreso',
-    completed: 'Completado',
+    completed: 'Listo',
     cancelled: 'Cancelado',
   };
   return labels[status ?? ''] ?? status ?? 'Recibido';

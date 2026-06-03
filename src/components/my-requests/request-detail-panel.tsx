@@ -16,17 +16,26 @@ import {
 import { RequestStatusTracker } from '@/components/my-requests/request-status-tracker';
 import { CommentThread, type Comment } from '@/components/my-requests/comment-thread';
 import { RequestAcceptancePanel } from '@/components/my-requests/request-acceptance-panel';
-import { publicRequestLabel, type CapacityAdvice, type SergioDecision } from '@/lib/request-acceptance';
+import { type CapacityAdvice, type SergioDecision } from '@/lib/request-acceptance';
+import { clientRequestLabel } from '@/lib/requests/client-board';
 import { mapDeliveryStatusForUser } from '@/lib/integrations/external-sync';
-import { priorityLabels, requestTypeLabels, siteConfig } from '@/lib/constants';
+import { priorityLabels, requestTypeLabels } from '@/lib/constants';
 import { DELIVERY_STATUSES, type DeliveryStatus } from '@/types/command-center';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ArrowLeft, ExternalLink, Loader2, User, Calendar, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { RequestDeliveriesSection } from '@/components/delivery/request-deliveries-section';
+import type {
+  GtmDebugVideoLibraryItem,
+  LookerDashboardLibraryItem,
+  RequestDelivery,
+} from '@/lib/delivery/types';
 
 export interface RequestDetail {
   id: string;
+  reference_code?: string | null;
   title: string;
   description: string;
   type: string;
@@ -53,6 +62,9 @@ interface RequestDetailPanelProps {
   backHref: string;
   currentUserId?: string;
   isInternal?: boolean;
+  deliveries?: RequestDelivery[];
+  lookerLibrary?: LookerDashboardLibraryItem[];
+  gtmLibrary?: GtmDebugVideoLibraryItem[];
 }
 
 export function RequestDetailPanel({
@@ -61,6 +73,9 @@ export function RequestDetailPanel({
   backHref,
   currentUserId,
   isInternal = false,
+  deliveries = [],
+  lookerLibrary = [],
+  gtmLibrary = [],
 }: RequestDetailPanelProps) {
   const router = useRouter();
   const status = request.delivery_status ?? request.status;
@@ -88,7 +103,7 @@ export function RequestDetailPanel({
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className={cn('space-y-6', isInternal ? 'w-full' : 'max-w-3xl mx-auto')}>
       <Button variant="ghost" size="sm" asChild>
         <Link href={backHref}>
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -102,6 +117,9 @@ export function RequestDetailPanel({
         <CardHeader className="pb-2">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
+              {request.reference_code && (
+                <p className="text-xs font-mono text-primary mb-1.5">{request.reference_code}</p>
+              )}
               <CardTitle className="text-lg leading-snug">{request.title}</CardTitle>
               <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-3 flex-wrap">
                 <span className="flex items-center gap-1">
@@ -119,7 +137,7 @@ export function RequestDetailPanel({
             <Badge className="shrink-0">
               {isInternal
                 ? mapDeliveryStatusForUser(deliveryStatus)
-                : publicRequestLabel(deliveryStatus, decision)}
+                : clientRequestLabel(deliveryStatus, decision)}
             </Badge>
           </div>
         </CardHeader>
@@ -128,7 +146,7 @@ export function RequestDetailPanel({
 
           {!isInternal && decision === 'accepted' && request.committed_due_date && (
             <p className="text-sm rounded-lg border border-radar/30 bg-radar/5 px-3 py-2 text-radar">
-              Fecha comprometida por Sergio:{' '}
+              Fecha que te confirmé:{' '}
               {format(new Date(request.committed_due_date), "d 'de' MMMM yyyy", { locale: es })}
             </p>
           )}
@@ -197,6 +215,15 @@ export function RequestDetailPanel({
         </CardContent>
       </Card>
 
+      <RequestDeliveriesSection
+        requestId={request.id}
+        requestType={request.type}
+        deliveries={deliveries}
+        isInternal={isInternal}
+        lookerLibrary={lookerLibrary}
+        gtmLibrary={gtmLibrary}
+      />
+
       {/* Comments */}
       <Card className="bg-card/40 border-border/60">
         <CardContent className="pt-6">
@@ -211,7 +238,7 @@ export function RequestDetailPanel({
 
       {!isInternal && (
         <p className="text-center text-xs text-muted-foreground pb-4">
-          {siteConfig.author} te notificará cuando haya cambios en este pedido.
+          Te aviso cuando cambie algo en este pedido.
         </p>
       )}
     </div>

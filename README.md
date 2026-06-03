@@ -20,7 +20,8 @@ Portal profesional de Analytics Consulting construido con Next.js 15, Supabase y
 | `/about` | Filosofía, colaboración, principios |
 | `/working-with-me` | SLAs, prioridades, FAQs |
 | `/playbooks` | Analytics Playbooks (GA4, GTM, BQ...) |
-| `/request-center` | Formulario de solicitudes → Supabase |
+| `/pedir` | Hub de pedidos con IA |
+| `/preguntale` | Consultor y pedido guiado → Supabase |
 | `/knowledge-base` | Wiki de artículos y guías |
 | `/event-catalog` | Documentación de eventos GA4 |
 | `/command-center` | **Analytics Command Center** — 12 módulos enterprise (requiere auth) |
@@ -73,10 +74,8 @@ src/
 │   ├── ai-insights/
 │   ├── contact/
 │   ├── event-catalog/
-│   ├── hub/
-│   ├── knowledge-base/
-│   ├── playbooks/
-│   ├── request-center/
+│   ├── pedir/
+│   ├── preguntale/
 │   └── working-with-me/
 ├── components/
 │   ├── events/

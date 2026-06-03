@@ -29,9 +29,9 @@ export const DECISION_LABELS: Record<SergioDecision, string> = {
 };
 
 export const DECISION_CLIENT_LABELS: Record<SergioDecision, string> = {
-  pending: 'Sergio está revisando tu pedido',
-  accepted: 'Aceptado — en cola de trabajo',
-  rejected: 'No se pudo tomar en este momento',
+  pending: 'Lo estoy revisando',
+  accepted: 'Lo tomé — en cola',
+  rejected: 'No puedo tomarlo ahora',
 };
 
 export function publicRequestLabel(

@@ -31,11 +31,62 @@ export interface BoardItem {
   priority: string;
   storyPoints?: number;
   assignee?: string;
+  company?: string | null;
   status: DeliveryStatus;
 }
 
-function SortableCard({ item }: { item: BoardItem }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
+function StaticBoardCard({ item }: { item: BoardItem }) {
+  return (
+    <div className="rounded-lg border border-border/60 bg-card/80 p-3">
+      <div className="flex items-start gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium line-clamp-2">{item.title}</p>
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            <Badge variant="secondary" className="text-[10px]">{item.type}</Badge>
+            {item.company && (
+              <Badge variant="outline" className="text-[10px]">{item.company}</Badge>
+            )}
+            {item.storyPoints && (
+              <Badge variant="outline" className="text-[10px]">{item.storyPoints} pts</Badge>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SortableCard({ item, readOnly }: { item: BoardItem; readOnly?: boolean }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: item.id,
+    disabled: readOnly,
+  });
+
+  const cardInner = (
+    <>
+      {!readOnly && <GripVertical className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />}
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium line-clamp-2">{item.title}</p>
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          <Badge variant="secondary" className="text-[10px]">{item.type}</Badge>
+          {item.company && (
+            <Badge variant="outline" className="text-[10px]">{item.company}</Badge>
+          )}
+          {item.storyPoints && (
+            <Badge variant="outline" className="text-[10px]">{item.storyPoints} pts</Badge>
+          )}
+        </div>
+      </div>
+    </>
+  );
+
+  if (readOnly) {
+    return (
+      <div className="rounded-lg border border-border/60 bg-card/80 p-3">
+        <div className="flex items-start gap-2">{cardInner}</div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -48,18 +99,7 @@ function SortableCard({ item }: { item: BoardItem }) {
       {...attributes}
       {...listeners}
     >
-      <div className="flex items-start gap-2">
-        <GripVertical className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium line-clamp-2">{item.title}</p>
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            <Badge variant="secondary" className="text-[10px]">{item.type}</Badge>
-            {item.storyPoints && (
-              <Badge variant="outline" className="text-[10px]">{item.storyPoints} pts</Badge>
-            )}
-          </div>
-        </div>
-      </div>
+      <div className="flex items-start gap-2">{cardInner}</div>
     </div>
   );
 }
@@ -100,10 +140,11 @@ function DroppableColumn({
 
 interface KanbanBoardProps {
   initialItems: BoardItem[];
+  readOnly?: boolean;
   onStatusChange?: (id: string, status: DeliveryStatus) => void | Promise<void>;
 }
 
-export function KanbanBoard({ initialItems, onStatusChange }: KanbanBoardProps) {
+export function KanbanBoard({ initialItems, readOnly = false, onStatusChange }: KanbanBoardProps) {
   const [items, setItems] = useState(initialItems);
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -125,6 +166,7 @@ export function KanbanBoard({ initialItems, onStatusChange }: KanbanBoardProps) 
   }
 
   async function handleDragEnd(event: DragEndEvent) {
+    if (readOnly) return;
     const { active, over } = event;
     setActiveId(null);
     if (!over) return;
@@ -152,6 +194,34 @@ export function KanbanBoard({ initialItems, onStatusChange }: KanbanBoardProps) 
 
   const activeItem = items.find((i) => i.id === activeId);
 
+  if (readOnly) {
+    return (
+      <div className="flex gap-4 overflow-x-auto pb-4 min-h-[500px]">
+        {DELIVERY_STATUSES.map((col) => {
+          const colItems = items.filter((i) => i.status === col.value);
+          return (
+            <div
+              key={col.value}
+              className="flex-shrink-0 w-72 rounded-xl border border-border/60 bg-card/20"
+            >
+              <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/40">
+                <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-md', col.color)}>
+                  {col.label}
+                </span>
+                <span className="text-xs text-muted-foreground">{colItems.length}</span>
+              </div>
+              <div className="p-2 space-y-2 min-h-[160px]">
+                {colItems.map((item) => (
+                  <StaticBoardCard key={item.id} item={item} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <DndContext
       sensors={sensors}
@@ -173,7 +243,7 @@ export function KanbanBoard({ initialItems, onStatusChange }: KanbanBoardProps) 
               <SortableContext items={colItems.map((i) => i.id)} strategy={verticalListSortingStrategy}>
                 <div className="p-2 space-y-2 min-h-[160px]">
                   {colItems.map((item) => (
-                    <SortableCard key={item.id} item={item} />
+                    <SortableCard key={item.id} item={item} readOnly={false} />
                   ))}
                 </div>
               </SortableContext>

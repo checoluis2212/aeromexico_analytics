@@ -2,10 +2,9 @@ import type { Metadata } from 'next';
 import './access-portal.css';
 
 export const metadata: Metadata = {
-  title: 'Restricted Access',
+  title: 'Acceso restringido',
   description:
-    'Pre-Entry Access Portal. Submit an access request for administrator review before entering the platform.',
-  robots: { index: false, follow: false },
+    'Portal de acceso previo Aeroméxico. Solicita acceso con tu correo corporativo; un administrador revisará tu solicitud.',
 };
 
 export default function AccessLayout({ children }: { children: React.ReactNode }) {

@@ -18,17 +18,23 @@ type Props = {
 const emptyForm: AccessRequestInput = {
   full_name: '',
   email: '',
-  company: '',
+  company: 'Aeroméxico',
   department: '',
   job_title: '',
   reason: '',
 };
 
 export function AccessRequestForm({ onSuccess, initialEmail = '' }: Props) {
-  const [form, setForm] = useState<AccessRequestInput>({ ...emptyForm, email: initialEmail });
+  const [form, setForm] = useState<AccessRequestInput>({
+    ...emptyForm,
+    email: initialEmail,
+    company: initialEmail ? emptyForm.company : 'Aeroméxico',
+  });
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof AccessRequestInput, string>>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const { fields: fieldLabels, placeholders } = ACCESS_PORTAL_COPY;
 
   function updateField<K extends keyof AccessRequestInput>(key: K, value: AccessRequestInput[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -65,25 +71,41 @@ export function AccessRequestForm({ onSuccess, initialEmail = '' }: Props) {
           onSuccess(parsed.data.email);
           return;
         }
-        setSubmitError(json.error ?? 'Submission failed. Please try again.');
+        setSubmitError(json.error ?? ACCESS_PORTAL_COPY.submitFailed);
         return;
       }
 
       onSuccess(parsed.data.email);
     } catch {
-      setSubmitError('Network error. Please check your connection and try again.');
+      setSubmitError(ACCESS_PORTAL_COPY.networkError);
     } finally {
       setLoading(false);
     }
   }
 
-  const fields: { key: keyof AccessRequestInput; label: string; type?: string; multiline?: boolean }[] = [
-    { key: 'full_name', label: 'Full Name' },
-    { key: 'email', label: 'Corporate Email', type: 'email' },
-    { key: 'company', label: 'Company' },
-    { key: 'department', label: 'Department' },
-    { key: 'job_title', label: 'Job Title' },
-    { key: 'reason', label: 'Reason for Access', multiline: true },
+  const fields: {
+    key: keyof AccessRequestInput;
+    label: string;
+    type?: string;
+    multiline?: boolean;
+    placeholder?: string;
+  }[] = [
+    { key: 'full_name', label: fieldLabels.full_name },
+    {
+      key: 'email',
+      label: fieldLabels.email,
+      type: 'email',
+      placeholder: placeholders.email,
+    },
+    { key: 'company', label: fieldLabels.company, placeholder: placeholders.company },
+    { key: 'department', label: fieldLabels.department },
+    { key: 'job_title', label: fieldLabels.job_title },
+    {
+      key: 'reason',
+      label: fieldLabels.reason,
+      multiline: true,
+      placeholder: placeholders.reason,
+    },
   ];
 
   return (
@@ -94,7 +116,7 @@ export function AccessRequestForm({ onSuccess, initialEmail = '' }: Props) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {fields.map(({ key, label, type, multiline }) => (
+        {fields.map(({ key, label, type, multiline, placeholder }) => (
           <div key={key} className={multiline ? 'sm:col-span-2' : undefined}>
             <Label htmlFor={key} className="text-xs font-medium">
               {label}
@@ -110,9 +132,9 @@ export function AccessRequestForm({ onSuccess, initialEmail = '' }: Props) {
                 rows={4}
                 className="mt-1.5 resize-y min-h-[100px]"
                 disabled={loading}
+                placeholder={placeholder}
                 aria-invalid={!!fieldErrors[key]}
                 aria-describedby={fieldErrors[key] ? `${key}-error` : undefined}
-                placeholder="Describe your business need and intended use of the platform."
               />
             ) : (
               <Input
@@ -122,7 +144,10 @@ export function AccessRequestForm({ onSuccess, initialEmail = '' }: Props) {
                 onChange={(e) => updateField(key, e.target.value)}
                 className="mt-1.5"
                 disabled={loading}
-                autoComplete={key === 'email' ? 'email' : key === 'full_name' ? 'name' : 'organization'}
+                placeholder={placeholder}
+                autoComplete={
+                  key === 'email' ? 'email' : key === 'full_name' ? 'name' : 'organization'
+                }
                 aria-invalid={!!fieldErrors[key]}
                 aria-describedby={fieldErrors[key] ? `${key}-error` : undefined}
               />
@@ -137,12 +162,15 @@ export function AccessRequestForm({ onSuccess, initialEmail = '' }: Props) {
       </div>
 
       {submitError && (
-        <p className="text-sm text-destructive rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2" role="alert">
+        <p
+          className="text-sm text-destructive rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2"
+          role="alert"
+        >
           {submitError}
         </p>
       )}
 
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button type="submit" className="w-full bg-[#0b2340] hover:bg-[#0b2340]/90 text-white" disabled={loading}>
         {loading ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />

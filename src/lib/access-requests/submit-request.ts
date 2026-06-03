@@ -22,7 +22,7 @@ export async function submitPlatformAccessRequest(
     return {
       ok: false,
       code: 'duplicate_pending',
-      message: 'An access request for this email is already pending review.',
+      message: 'Ya existe una solicitud pendiente con este correo.',
     };
   }
 
@@ -30,7 +30,7 @@ export async function submitPlatformAccessRequest(
     return {
       ok: false,
       code: 'already_approved',
-      message: 'This email already has approved access. Please sign in.',
+      message: 'Este correo ya tiene acceso aprobado. Inicia sesión.',
     };
   }
 
@@ -53,11 +53,11 @@ export async function submitPlatformAccessRequest(
       return {
         ok: false,
         code: 'duplicate_pending',
-        message: 'An access request for this email is already pending review.',
+        message: 'Ya existe una solicitud pendiente con este correo.',
       };
     }
     console.error('platform_access_requests insert:', error.message);
-    return { ok: false, code: 'db_error', message: 'Unable to submit request. Try again later.' };
+    return { ok: false, code: 'db_error', message: 'No se pudo registrar la solicitud. Inténtalo más tarde.' };
   }
 
   return { ok: true, id: data.id, status: 'pending' };

@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
       return NextResponse.json(
-        { error: 'Access request service is temporarily unavailable.' },
+        { error: 'El servicio de solicitudes no está disponible temporalmente.' },
         { status: 503 }
       );
     }
@@ -27,16 +27,16 @@ export async function POST(request: NextRequest) {
         success: true,
         id: result.id,
         status: result.status,
-        message: 'Access request submitted successfully.',
+        message: 'Solicitud de acceso enviada correctamente.',
       },
       { status: 201 }
     );
   } catch (err) {
     if (err instanceof z.ZodError) {
-      const msg = err.issues[0]?.message ?? 'Invalid form data';
+      const msg = err.issues[0]?.message ?? 'Datos del formulario inválidos';
       return NextResponse.json({ error: msg }, { status: 400 });
     }
     console.error('POST /api/access-requests:', err);
-    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
+    return NextResponse.json({ error: 'Error interno del servidor.' }, { status: 500 });
   }
 }

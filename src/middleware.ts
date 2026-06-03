@@ -7,6 +7,15 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/',
+    '/about',
+    '/contact',
+    '/working-with-me',
+    '/event-catalog',
+    '/analytics-os',
+    '/ai-insights',
+    '/faq',
+    '/glosario',
     '/command-center/:path*',
     '/mis-pedidos/:path*',
     '/pedir',

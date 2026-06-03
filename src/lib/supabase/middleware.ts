@@ -3,8 +3,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getPostLoginPath, canAccessCommandCenter, isSergioAdmin, isSergioOnlyRoute } from '@/lib/auth/access';
 import {
   hasPlatformAccess,
-  isPlatformAccessExemptPath,
-  PLATFORM_ACCESS_PATH,
+  isPlatformGatedPath,
+  platformAccessRedirectUrl,
   type ProfilePlatformAccess,
 } from '@/lib/access-requests/platform-access';
 import {
@@ -38,17 +38,11 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
-  const authRequiredPaths = ['/command-center', '/mis-pedidos', '/pedir', '/preguntale', '/perfil'];
-  const needsAuth = authRequiredPaths.some((path) => pathname.startsWith(path));
+  if (isPlatformGatedPath(pathname)) {
+    if (!user) {
+      return NextResponse.redirect(platformAccessRedirectUrl(request));
+    }
 
-  if (needsAuth && !user) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    url.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(url);
-  }
-
-  if (user && needsAuth && !isPlatformAccessExemptPath(pathname)) {
     const { data: accessProfile } = await supabase
       .from('profiles')
       .select('role, acc_role, email, platform_access_approved')
@@ -56,12 +50,17 @@ export async function updateSession(request: NextRequest) {
       .single();
 
     if (!hasPlatformAccess(accessProfile as ProfilePlatformAccess | null)) {
-      const url = request.nextUrl.clone();
-      url.pathname = PLATFORM_ACCESS_PATH;
-      url.searchParams.set('state', 'pending');
-      if (accessProfile?.email) url.searchParams.set('email', accessProfile.email);
-      return NextResponse.redirect(url);
+      return NextResponse.redirect(
+        platformAccessRedirectUrl(request, accessProfile?.email, 'pending')
+      );
     }
+  }
+
+  const authRequiredPaths = ['/command-center', '/mis-pedidos', '/pedir', '/preguntale', '/perfil'];
+  const needsAuth = authRequiredPaths.some((path) => pathname.startsWith(path));
+
+  if (needsAuth && !user) {
+    return NextResponse.redirect(platformAccessRedirectUrl(request));
   }
 
   if (user && pathname.startsWith('/command-center')) {

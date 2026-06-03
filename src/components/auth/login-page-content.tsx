@@ -139,7 +139,9 @@ export function LoginPageContent() {
             >
               {ACCESS_PORTAL_COPY.portalBadge}
             </Badge>
-            <h1 className="text-xl font-semibold tracking-tight">{LOGIN_PAGE_COPY.gateTitle}</h1>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">
+              {LOGIN_PAGE_COPY.gateTitle}
+            </h1>
             <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
               {LOGIN_PAGE_COPY.gateLead}
             </p>
@@ -160,7 +162,9 @@ export function LoginPageContent() {
                 <ShieldCheck className="h-5 w-5 text-primary" aria-hidden />
               </div>
               <div>
-                <h2 className="text-base font-semibold">{LOGIN_PAGE_COPY.noAccessTitle}</h2>
+                <h2 className="text-base font-semibold text-foreground">
+                  {LOGIN_PAGE_COPY.noAccessTitle}
+                </h2>
                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                   {LOGIN_PAGE_COPY.noAccessBody}
                 </p>
@@ -193,7 +197,7 @@ export function LoginPageContent() {
                 <LockKeyhole className="h-3.5 w-3.5" />
                 {LOGIN_PAGE_COPY.hasAccountTitle}
               </div>
-              <h2 className="text-lg font-semibold">{LOGIN_PAGE_COPY.loginTitle}</h2>
+              <h2 className="text-lg font-semibold text-foreground">{LOGIN_PAGE_COPY.loginTitle}</h2>
               <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed max-w-xs mx-auto">
                 {LOGIN_PAGE_COPY.hasAccountBody}
               </p>
@@ -201,7 +205,7 @@ export function LoginPageContent() {
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <Label htmlFor="email" className="text-xs">
+                <Label htmlFor="email" className="text-xs text-foreground">
                   Correo corporativo
                 </Label>
                 <Input
@@ -210,13 +214,13 @@ export function LoginPageContent() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="mt-1.5 h-9"
+                  className="mt-1.5 h-9 text-foreground border-border placeholder:text-muted-foreground"
                   placeholder="nombre.apellido@aeromexico.com"
                   autoComplete="email"
                 />
               </div>
               <div>
-                <Label htmlFor="password" className="text-xs">
+                <Label htmlFor="password" className="text-xs text-foreground">
                   Contraseña
                 </Label>
                 <Input
@@ -225,7 +229,7 @@ export function LoginPageContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="mt-1.5 h-9"
+                  className="mt-1.5 h-9 text-foreground border-border placeholder:text-muted-foreground"
                   autoComplete="current-password"
                 />
               </div>

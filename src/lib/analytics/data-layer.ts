@@ -96,25 +96,24 @@ export function clearAnalyticsUser(): void {
 export function trackPageView(pathname: string): void {
   cachedPath = pathname;
   const section = resolvePageSection(pathname);
-  const authState = cachedUser ? 'authenticated' : 'anonymous';
+
+  // page_view manual vía dataLayer (GTM: desactivar page_view automático del tag GA4 Configuration).
   const payload: Record<string, unknown> = {
     event: 'page_view',
+    user_id: cachedUser?.id ?? null,
     page_title: typeof document !== 'undefined' ? document.title : '',
     page_location: typeof window !== 'undefined' ? window.location.href : pathname,
     page_path: pathname,
     portal_section: section.portal_section,
     page_type: section.page_type,
-    auth_state: authState,
+    auth_state: cachedUser ? 'authenticated' : 'anonymous',
     app_role: cachedUser?.app_role ?? null,
   };
   if (section.cc_area) payload.cc_area = section.cc_area;
   if (section.content_type) payload.content_type = section.content_type;
-  if (cachedUser?.id) payload.user_id = cachedUser.id;
 
-  // Command center: un evento específico (sin duplicar page_view genérico)
   if (section.portal_section === 'command_center') {
     pushDataLayer({ ...payload, event: 'cc_page_view' });
-    return;
   }
   if (section.content_type) {
     pushDataLayer({

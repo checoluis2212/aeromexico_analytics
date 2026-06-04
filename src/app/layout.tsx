@@ -65,7 +65,7 @@ export default function RootLayout({
             <Script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />
             <Script id="ga4-config" strategy="afterInteractive">
               {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
-gtag('js',new Date());gtag('config','${gaId}');`}
+gtag('js',new Date());gtag('config','${gaId}',{send_page_view:false});`}
             </Script>
           </>
         ) : null}

@@ -80,12 +80,17 @@ Variables de entorno: `NEXT_PUBLIC_GTM_ID`, `NEXT_PUBLIC_GA4_MEASUREMENT_ID`.
 
 ### Checklist en GTM
 
-1. Variable **DLV - user_id** ← Data Layer Variable `user_id`.
-2. Tag **GA4 Configuration** → User-ID activado = `{{DLV - user_id}}`.
-3. Triggers **Custom Event** para eventos del portal (`login`, `generate_lead`, `request_submit`, `assistant_*`, `cc_*`, `nav_click`, etc.).
-4. Tags **GA4 Event** mapeando parámetros custom a dimensiones GA4:
-   - `portal_section`, `page_type`, `app_role`, `request_type`, `module`, `link_id`, `nav_zone`.
-5. Validar en **GTM Preview** + **GA4 DebugView** (usuario demo con sesión).
+1. Tag **GA4 Configuration**:
+   - **Desactivar** “Send a page view event when this configuration loads” (page_view solo vía dataLayer del portal).
+   - User-ID = variable `{{DLV - user_id}}`.
+2. Variable **DLV - user_id** ← Data Layer Variable, clave `user_id`.
+3. Tag **GA4 Event — page_view**:
+   - Trigger: Custom Event `page_view`.
+   - Event parameter `user_id` = `{{DLV - user_id}}`.
+   - Mapear `page_title`, `page_location`, `page_path` y dimensiones del portal.
+4. Secuencia en dataLayer (portal): `user_context` (con `user_id`) → `page_view` (con `user_id`, `page_title`, `page_location`).
+5. Triggers **Custom Event** para el resto (`login`, `generate_lead`, `request_submit`, `assistant_*`, `cc_*`, `nav_click`, etc.).
+6. Validar en **GTM Preview** + **GA4 DebugView** (usuario demo con sesión).
 
 Eventos documentados en `event_catalog` (categoría `portal`) — migración `024_portal_analytics_events.sql`.
 

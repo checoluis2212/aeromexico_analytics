@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { getAppRole, type AppRole } from '@/lib/auth/access';
 import {
@@ -15,8 +15,12 @@ import {
 import { PortalPageTracker } from '@/components/analytics/portal-page-tracker';
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
+  /** Bloquea page_view hasta que user_context (anon o autenticado) esté en dataLayer */
+  const [authReady, setAuthReady] = useState(false);
+
   useEffect(() => {
     const supabase = createClient();
+    let mounted = true;
 
     async function syncUser(userId: string | null) {
       if (!userId) {
@@ -43,15 +47,23 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
       });
     }
 
+    async function handleAuthChange(userId: string | null) {
+      setAuthReady(false);
+      await syncUser(userId);
+      if (mounted) setAuthReady(true);
+    }
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      // Evita ráfagas: getUser + INITIAL_SESSION + TOKEN_REFRESHED repetían user_context
       if (event === 'TOKEN_REFRESHED') return;
-      void syncUser(session?.user?.id ?? null);
+      void handleAuthChange(session?.user?.id ?? null);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const track = useCallback((event: string, params?: Record<string, unknown>) => {
@@ -62,7 +74,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AnalyticsContextProvider value={value}>
-      <PortalPageTracker />
+      <PortalPageTracker authReady={authReady} />
       {children}
     </AnalyticsContextProvider>
   );

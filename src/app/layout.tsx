@@ -7,6 +7,7 @@ import {
   GoogleTagManager,
   GoogleTagManagerNoScript,
 } from '@/components/analytics/google-tag-manager';
+import { resolveGtmId } from '@/lib/analytics/gtm-id';
 import { siteConfig } from '@/lib/constants';
 import { APP_THEME } from '@/lib/theme';
 import './globals.css';
@@ -46,13 +47,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const gaId = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
+  const gaId = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim();
+  const gtmId = resolveGtmId();
 
   return (
     <html lang="es" className="dark" data-theme={APP_THEME} suppressHydrationWarning>
-      <GoogleTagManager />
+      <GoogleTagManager gtmId={gtmId} />
       <body className={`${roboto.variable} ${robotoMono.variable} theme-root font-sans min-h-screen flex flex-col`}>
-        <GoogleTagManagerNoScript />
+        <GoogleTagManagerNoScript gtmId={gtmId} />
         <div aria-hidden className="theme-background" />
         <div className="relative z-10 flex min-h-screen flex-col">
           <AnalyticsProvider>{children}</AnalyticsProvider>

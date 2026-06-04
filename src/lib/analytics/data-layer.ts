@@ -70,6 +70,7 @@ export function setAnalyticsUser(ctx: AnalyticsUserContext): void {
   cachedUser = ctx;
   if (lastUserContextKey === key) return;
   lastUserContextKey = key;
+  // Siempre antes del page_view de la misma vista (PortalPageTracker espera authReady).
   pushDataLayer({
     event: 'user_context',
     user_id: ctx.id,

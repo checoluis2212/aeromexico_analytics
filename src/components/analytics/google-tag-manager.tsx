@@ -1,8 +1,9 @@
 import { GoogleTagManager as NextGoogleTagManager } from '@next/third-parties/google';
 import Script from 'next/script';
-import { siteConfig } from '@/lib/constants';
 
-const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID ?? siteConfig.gtmContainerId;
+type Props = {
+  gtmId: string;
+};
 
 /** Inicializa dataLayer antes de que GTM cargue (eventos del portal). */
 function DataLayerInit() {
@@ -13,20 +14,20 @@ function DataLayerInit() {
   );
 }
 
-export function GoogleTagManager() {
+export function GoogleTagManager({ gtmId }: Props) {
   return (
     <>
       <DataLayerInit />
-      <NextGoogleTagManager gtmId={GTM_ID} />
+      <NextGoogleTagManager gtmId={gtmId} />
     </>
   );
 }
 
-export function GoogleTagManagerNoScript() {
+export function GoogleTagManagerNoScript({ gtmId }: Props) {
   return (
     <noscript>
       <iframe
-        src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+        src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
         height="0"
         width="0"
         style={{ display: 'none', visibility: 'hidden' }}

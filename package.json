@@ -18,6 +18,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@google-cloud/bigquery": "^7.9.4",
     "@hookform/resolvers": "^5.4.0",
+    "@next/third-parties": "^15.5.19",
     "@radix-ui/react-slot": "^1.2.4",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.2",

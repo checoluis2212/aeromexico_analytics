@@ -1,15 +1,24 @@
 import { GoogleTagManager as NextGoogleTagManager } from '@next/third-parties/google';
 import Script from 'next/script';
+import { resolveGa4Id } from '@/lib/analytics/gtm-id';
 
 type Props = {
   gtmId: string;
 };
 
-/** Inicializa dataLayer antes de que GTM cargue (eventos del portal). */
+/**
+ * Inicializa dataLayer y desactiva page_view automático de GA4/Google Tag
+ * antes de que cargue gtm.js. Los page_view van solo por dataLayer manual.
+ */
 function DataLayerInit() {
+  const ga4Id = resolveGa4Id();
+  const disableAutoPageView = ga4Id
+    ? `function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${ga4Id}',{send_page_view:false});`
+    : '';
+
   return (
     <Script id="data-layer-init" strategy="beforeInteractive">
-      {`window.dataLayer=window.dataLayer||[];`}
+      {`window.dataLayer=window.dataLayer||[];${disableAutoPageView}`}
     </Script>
   );
 }

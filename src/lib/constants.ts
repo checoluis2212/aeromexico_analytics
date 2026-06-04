@@ -12,6 +12,8 @@ export const siteConfig = {
   email: 'luissergio.mkt@gmail.com',
   /** Contenedor GTM del portal (Aeroméxico Analytics) */
   gtmContainerId: 'GTM-ND2WQ7W2',
+  /** GA4 vía GTM — solo para desactivar page_view automático en init (hits por dataLayer) */
+  ga4MeasurementId: 'G-KE7QBEPX',
 };
 
 export const analyticsStack = [

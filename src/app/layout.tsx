@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import { Roboto, Roboto_Mono } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
 import { AnalyticsProvider } from '@/components/analytics/analytics-provider';
@@ -47,7 +46,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const gaId = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim();
   const gtmId = resolveGtmId();
 
   return (
@@ -60,15 +58,6 @@ export default function RootLayout({
           <AnalyticsProvider>{children}</AnalyticsProvider>
         </div>
         <Toaster richColors position="top-right" />
-        {gaId ? (
-          <>
-            <Script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />
-            <Script id="ga4-config" strategy="afterInteractive">
-              {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
-gtag('js',new Date());gtag('config','${gaId}',{send_page_view:false});`}
-            </Script>
-          </>
-        ) : null}
       </body>
     </html>
   );

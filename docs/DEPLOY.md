@@ -74,23 +74,58 @@ Añadir `AI_SERVICE_URL` en Vercel apuntando al servicio desplegado.
 
 ---
 
-## GTM / GA4 — dataLayer del portal
+## GTM / GA4 — SPA Next.js (page_view manual)
 
 Variables de entorno: `NEXT_PUBLIC_GTM_ID`, `NEXT_PUBLIC_GA4_MEASUREMENT_ID`.
 
-### Checklist en GTM
+### Flujo en dataLayer (código)
 
-1. Tag **GA4 Configuration**:
-   - **Desactivar** “Send a page view event when this configuration loads” (page_view solo vía dataLayer del portal).
-   - User-ID = variable `{{DLV - user_id}}`.
-2. Variable **DLV - user_id** ← Data Layer Variable, clave `user_id`.
-3. Tag **GA4 Event — page_view**:
-   - Trigger: Custom Event `page_view`.
-   - Event parameter `user_id` = `{{DLV - user_id}}`.
-   - Mapear `page_title`, `page_location`, `page_path` y dimensiones del portal.
-4. Secuencia en dataLayer (portal): `user_context` (con `user_id`) → `page_view` (con `user_id`, `page_title`, `page_location`).
-5. Triggers **Custom Event** para el resto (`login`, `generate_lead`, `request_submit`, `assistant_*`, `cc_*`, `nav_click`, etc.).
-6. Validar en **GTM Preview** + **GA4 DebugView** (usuario demo con sesión).
+```
+push global: user_id, app_role, auth_state
+       ↓
+user_context (event)
+       ↓
+page_view manual (un push por ruta + usuario)
+       ↓
+GA4 Event tag (trigger: Custom Event page_view)
+```
+
+### Checklist GTM (obligatorio)
+
+1. **GA4 Configuration**
+   - Desactivar: *Send a page view event when this configuration loads*.
+   - User-ID = `{{DLV - user_id}}`.
+   - No usar trigger *History Change* para page_view.
+
+2. **Variables DLV**
+   - `user_id`, `app_role`, `auth_state`, `page_path`, `portal_section`, `page_title`, `page_location`.
+
+3. **GA4 Event — page_view**
+   - Trigger: Custom Event = `page_view`.
+   - Parámetros: `user_id`, `page_title`, `page_location`, `page_path`, `portal_section`, `auth_state`, `app_role`.
+
+4. Triggers **Custom Event** para el resto (`login`, `generate_lead`, `request_submit`, `assistant_*`, `nav_click`, etc.).
+
+5. **Publicar** contenedor y validar en Preview + GA4 DebugView.
+
+### Validación en GTM Preview
+
+- [ ] `user_context` incluye `user_id` (UUID, nunca email).
+- [ ] Tras `user_context`, variables DLV muestran `user_id`.
+- [ ] Un solo `page_view` por navegación, con `user_id`.
+- [ ] Tag GA4 Event se activa en `page_view`.
+- [ ] No hay `cc_page_view`.
+- [ ] No hay page_view automático antes de `user_context`.
+
+### Código relevante
+
+| Archivo | Rol |
+|---------|-----|
+| `src/lib/analytics/data-layer.ts` | `user_context`, `page_view`, dedupe |
+| `src/components/analytics/analytics-provider.tsx` | Auth → `user_context` → `authReady` |
+| `src/components/analytics/portal-page-tracker.tsx` | `page_view` tras `authReady` |
+| `src/components/analytics/google-tag-manager.tsx` | Carga GTM |
+| `src/app/layout.tsx` | GTM + gtag `send_page_view: false` |
 
 Eventos documentados en `event_catalog` (categoría `portal`) — migración `024_portal_analytics_events.sql`.
 

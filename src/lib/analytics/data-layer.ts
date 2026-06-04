@@ -70,9 +70,8 @@ export function setAnalyticsUser(ctx: AnalyticsUserContext): void {
   cachedUser = ctx;
   if (lastUserContextKey === key) return;
   lastUserContextKey = key;
-  // Siempre antes del page_view de la misma vista (PortalPageTracker espera authReady).
+  // GTM: primero estado (user_id), luego evento user_context, luego page_view (authReady).
   pushDataLayer({
-    event: 'user_context',
     user_id: ctx.id,
     user_properties: {
       app_role: ctx.app_role,
@@ -80,6 +79,7 @@ export function setAnalyticsUser(ctx: AnalyticsUserContext): void {
       portal_access: true,
     },
   });
+  pushDataLayer({ event: 'user_context' });
 }
 
 export function clearAnalyticsUser(): void {
@@ -87,10 +87,10 @@ export function clearAnalyticsUser(): void {
   cachedUser = null;
   lastUserContextKey = null;
   pushDataLayer({
-    event: 'user_context',
     user_id: undefined,
     user_properties: undefined,
   });
+  pushDataLayer({ event: 'user_context' });
 }
 
 export function trackPageView(pathname: string): void {

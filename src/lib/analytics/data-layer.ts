@@ -70,8 +70,9 @@ export function setAnalyticsUser(ctx: AnalyticsUserContext): void {
   cachedUser = ctx;
   if (lastUserContextKey === key) return;
   lastUserContextKey = key;
-  // GTM: primero estado (user_id), luego evento user_context, luego page_view (authReady).
+  // user_id en el mismo push que el evento — GTM DLV lo lee para GA4 User-ID (nunca email).
   pushDataLayer({
+    event: 'user_context',
     user_id: ctx.id,
     user_properties: {
       app_role: ctx.app_role,
@@ -79,7 +80,6 @@ export function setAnalyticsUser(ctx: AnalyticsUserContext): void {
       portal_access: true,
     },
   });
-  pushDataLayer({ event: 'user_context' });
 }
 
 export function clearAnalyticsUser(): void {
@@ -87,10 +87,10 @@ export function clearAnalyticsUser(): void {
   cachedUser = null;
   lastUserContextKey = null;
   pushDataLayer({
-    user_id: undefined,
-    user_properties: undefined,
+    event: 'user_context',
+    user_id: null,
+    user_properties: null,
   });
-  pushDataLayer({ event: 'user_context' });
 }
 
 export function trackPageView(pathname: string): void {

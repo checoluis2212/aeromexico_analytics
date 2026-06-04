@@ -10,6 +10,8 @@ export const siteConfig = {
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://workingwithsergio.com',
   author: 'Sergio Burgos',
   email: 'luissergio.mkt@gmail.com',
+  /** Contenedor GTM del portal (Aeroméxico Analytics) */
+  gtmContainerId: 'GTM-ND2WQ7W2',
 };
 
 export const analyticsStack = [

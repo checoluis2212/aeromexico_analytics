@@ -41,7 +41,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const gtmId = process.env.NEXT_PUBLIC_GTM_ID;
+  const gtmId = process.env.NEXT_PUBLIC_GTM_ID ?? siteConfig.gtmContainerId;
   const gaId = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
 
   return (
